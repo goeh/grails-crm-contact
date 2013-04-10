@@ -16,11 +16,14 @@
 
 package grails.plugins.crm.contact
 
-import grails.plugins.crm.core.TenantEntity
 import grails.plugins.crm.core.AuditEntity
 import grails.plugins.crm.core.CrmLookupEntity
+import grails.plugins.crm.core.TenantEntity
 
+/**
+ * Defines the type of relation between two contacts, for example "employee" or "chairman".
+ */
 @TenantEntity
 @AuditEntity
-class CrmAddressType extends CrmLookupEntity {
+class CrmContactRelationType extends CrmLookupEntity {
 }

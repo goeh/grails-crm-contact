@@ -16,11 +16,21 @@
 
 package grails.plugins.crm.contact
 
-import grails.plugins.crm.core.TenantEntity
-import grails.plugins.crm.core.AuditEntity
-import grails.plugins.crm.core.CrmLookupEntity
+/**
+ * Relation between two contacts.
+ */
+class CrmContactRelation {
+    CrmContact a
+    CrmContact b
+    CrmContactRelationType type
+    String description
 
-@TenantEntity
-@AuditEntity
-class CrmAddressType extends CrmLookupEntity {
+    static constraints = {
+        type(unique: ['a', 'b'])
+        description(maxSize: 2000, nullable: true, widget: 'textarea')
+    }
+
+    String toString() {
+        type.toString()
+    }
 }

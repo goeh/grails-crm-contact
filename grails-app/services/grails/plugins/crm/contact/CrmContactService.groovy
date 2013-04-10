@@ -304,6 +304,59 @@ class CrmContactService {
         return m
     }
 
+    CrmContactRelationType getRelationType(String param) {
+        CrmContactRelationType.findByParamAndTenantId(param, TenantUtils.tenant)
+    }
+
+    CrmContactRelationType createRelationType(Map params, boolean save = false) {
+        def tenant = TenantUtils.tenant
+        def param = params.param
+        if (!param) {
+            param = params.name.toLowerCase().replace(' ', '-')
+            def maxSize = new CrmContactRelationType().constraints.param.maxSize
+            if (param.length() > maxSize) {
+                param = param[0..(maxSize - 1)]
+                if (param[-1] == '-') {
+                    param = param[0..-2]
+                }
+            }
+            params.param = param
+        }
+        def m = CrmContactRelationType.findByParamAndTenantId(param, tenant)
+        if (!m) {
+            m = new CrmContactRelationType()
+            def args = [m, params, [include: CrmContactRelationType.BIND_WHITELIST]]
+            new BindDynamicMethod().invoke(m, 'bind', args.toArray())
+            m.tenantId = tenant
+            if (params.enabled == null) {
+                m.enabled = true
+            }
+            if (save) {
+                m.save()
+            } else {
+                m.validate()
+                m.clearErrors()
+            }
+        }
+        return m
+    }
+
+    CrmContactRelation addRelation(CrmContact a, CrmContact b, String typeParam, String description = null) {
+        def type = getRelationType(typeParam)
+        if (!type) {
+            throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeParam]")
+        }
+        def relation = CrmContactRelation.createCriteria().get() {
+            eq('a', a)
+            eq('b', b)
+            eq('type', type)
+        }
+        if (!relation) {
+            relation = new CrmContactRelation(a: a, b: b, type: type, description: description).save(failOnError: true)
+        }
+        return relation
+    }
+
     CrmContact createCompany(Map<String, Object> params, boolean save = false) {
         if (!params.name) {
             throw new IllegalArgumentException("Mandatory parameter [name] is missing")

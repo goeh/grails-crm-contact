@@ -1,18 +1,17 @@
 /*
- *  Copyright 2012 Goran Ehrsson.
+ * Copyright (c) 2013 Goran Ehrsson.
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *  under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package grails.plugins.crm.contact
 
@@ -54,19 +53,19 @@ class CrmContact {
 
     static hasMany = [addresses: CrmContactAddress, children: CrmContact]
     static constraints = {
-        firstName(maxSize: 64, nullable: true, validator: {val, obj ->
+        firstName(maxSize: 64, nullable: true, validator: { val, obj ->
             (val || obj.lastName || obj.name) ? true : 'blank'
         })
-        lastName(maxSize: 64, nullable: true, validator: {val, obj ->
+        lastName(maxSize: 64, nullable: true, validator: { val, obj ->
             (val || obj.firstName || obj.name) ? true : 'blank'
         })
-        name(maxSize: 80, nullable: true, validator: {val, obj ->
+        name(maxSize: 80, nullable: true, validator: { val, obj ->
             (val || obj.firstName || obj.lastName) ? true : 'blank'
         })
         namePhonetic(maxSize: 16, nullable: true)
         number2(maxSize: 20, nullable: true)
         ssn(maxSize: 20, nullable: true)
-        duns(maxSize: 20, nullable: true, validator: {val, obj ->
+        duns(maxSize: 20, nullable: true, validator: { val, obj ->
             if (val && obj.domainClass.grailsApplication.config.crm.contact.duns.strict && val.length() > DUNS_NUMBER_LENGTH) {
                 return 'maxSize'
             }
@@ -79,7 +78,7 @@ class CrmContact {
         birthMonth(min: 1, max: 12, nullable: true)
         birthDay(min: 1, max: 31, nullable: true)
         title(maxSize: 80, nullable: true)
-        parent(nullable: true, validator: {val, obj->
+        parent(nullable: true, validator: { val, obj ->
             val == obj ? 'circularReference' : null
         })
 
@@ -101,7 +100,7 @@ class CrmContact {
         //addresses cascade: 'all-delete-orphan'
     }
 
-    static transients = ['preferredPhone', 'address', 'myAddress', 'company', 'person', 'vcard', 'dao']
+    static transients = ['preferredPhone', 'address', 'myAddress', 'company', 'person', 'vcard', 'dao', 'relations']
 
     static searchable = {
         name boost: 1.5
@@ -116,7 +115,7 @@ class CrmContact {
         if (!number) {
             number = getNextSequenceNumber()
         }
-        if(! guid) {
+        if (!guid) {
             guid = UUID.randomUUID().toString()
         }
         if (firstName && lastName) {
@@ -128,30 +127,48 @@ class CrmContact {
         }
         namePhonetic = name ? SearchUtils.doubleMetaphoneEncode(name) : null
 
-        if(duns && domainClass.grailsApplication.config.crm.contact.duns.strict) {
+        if (duns && domainClass.grailsApplication.config.crm.contact.duns.strict) {
             duns = duns.replaceAll(/\D/, '').trim() ?: null
         }
     }
 
-    String getPreferredPhone() {
-        if(mobile) {
+    transient List<CrmContactRelation> getRelations() {
+        CrmContactRelation.createCriteria().list() {
+            or {
+                eq('a', this)
+                eq('b', this)
+            }
+            type {
+                order 'orderIndex', 'asc'
+            }
+            a {
+                order 'name', 'asc'
+            }
+            b {
+                order 'name', 'asc'
+            }
+        }
+    }
+
+    transient String getPreferredPhone() {
+        if (mobile) {
             return mobile
         }
-        if(telephone) {
+        if (telephone) {
             return telephone
         }
-        if(parent?.telephone) {
+        if (parent?.telephone) {
             return parent.telephone
         }
         return null
     }
 
-    CrmContactAddress getAddress() {
+    transient CrmContactAddress getAddress() {
         getMyAddress() ?: parent?.address
     }
 
-    CrmContactAddress getMyAddress() {
-        (addresses?.find {it.preferred} ?: addresses?.find {it})
+    transient CrmContactAddress getMyAddress() {
+        (addresses?.find { it.preferred } ?: addresses?.find { it })
     }
 
     def setAddress(addressBean) {
@@ -168,11 +185,11 @@ class CrmContact {
         return addr
     }
 
-    boolean isCompany() {
+    transient boolean isCompany() {
         !(firstName || lastName)
     }
 
-    boolean isPerson() {
+    transient boolean isPerson() {
         (firstName || lastName)
     }
 
@@ -180,7 +197,7 @@ class CrmContact {
         name
     }
 
-    String getVcard() {
+    transient String getVcard() {
         def postalAddress = new StringBuilder()
         if (address?.address1) {
             postalAddress << address.address1
@@ -238,7 +255,7 @@ class CrmContact {
             map.parent = parent.getDao(false)
         }
         if (includeChildren && children) {
-            map.children = children.collect {it.getSelfProperties(DAO_PROPS)}
+            map.children = children.collect { it.getSelfProperties(DAO_PROPS) }
         }
         return map
     }
