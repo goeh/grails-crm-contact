@@ -38,7 +38,7 @@ class CrmContactService {
         def locale = tenant.locale
         TenantUtils.withTenant(tenant.id) {
 
-            sequenceGeneratorService.initSequence(CrmContact, null, tenant, 1, "%s")
+            sequenceGeneratorService.initSequence(CrmContact, null, tenant.id, 1, "%s")
 
             crmTagService.createTag(name: CrmContact.name, multiple: true)
 
