@@ -42,7 +42,7 @@ class CrmContact {
     Integer birthMonth
     Integer birthDay
     String title
-    CrmContact parent
+    CrmContact parent // TODO Remove and use CrmContactRelation instead
     String email
     String telephone
     String mobile
