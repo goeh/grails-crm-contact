@@ -35,6 +35,9 @@ class CrmContactService {
     @Listener(namespace = "crmContact", topic = "enableFeature")
     def enableFeature(event) {
         def tenant = crmSecurityService.getTenantInfo(event.tenant)
+        if(! tenant) {
+            throw new IllegalArgumentException("Cannot find tenant info for tenant [${event.tenant}], event=$event")
+        }
         def locale = tenant.locale
         TenantUtils.withTenant(tenant.id) {
 
