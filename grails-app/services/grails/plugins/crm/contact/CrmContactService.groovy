@@ -658,7 +658,11 @@ class CrmContactService {
 
     String deleteContact(CrmContact crmContact) {
         def tombstone = crmContact.toString()
+        def id = crmContact.id
+        def tenant = crmContact.tenantId
         crmContact.delete()
+        def username = crmSecurityService.currentUser?.username
+        event(for: "crmContact", topic: "deleted", data: [id: id, tenant: tenant, user: username, name: tombstone])
         return tombstone
     }
 
