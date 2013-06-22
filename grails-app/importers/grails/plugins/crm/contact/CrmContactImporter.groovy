@@ -16,6 +16,8 @@
 
 package grails.plugins.crm.contact
 
+import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
+
 //import grails.plugins.crm.dataimport.CrmImport
 
 /**
@@ -25,6 +27,7 @@ package grails.plugins.crm.contact
 class CrmContactImporter {
 
     def grailsApplication
+    def crmContactService
 
     def beforeImport(task) {
     }
@@ -35,6 +38,7 @@ class CrmContactImporter {
             crmContact = match(data, task.matchCriteria)
         }
         if (!crmContact) {
+            //crmContact = crmContactService.createCompany(data)
             crmContact = new CrmContact()
         } else if (!task.matchParams?.update) {
             return
@@ -45,6 +49,15 @@ class CrmContactImporter {
     }
 
     def afterImport(task) {
+    }
+
+    def match(Map data, Closure crit) {
+        CrmContact.createCriteria().get(crit.curry(data))
+    }
+
+    protected Object bindData(Object target, Map params) {
+        def args = [target, params, [include: CrmContact.BIND_WHITELIST]]
+        new BindDynamicMethod().invoke(target, 'bind', args.toArray())
     }
 
 }
