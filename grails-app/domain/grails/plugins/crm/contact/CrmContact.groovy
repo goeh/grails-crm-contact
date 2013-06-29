@@ -100,7 +100,7 @@ class CrmContact {
         //addresses cascade: 'all-delete-orphan'
     }
 
-    static transients = ['preferredPhone', 'address', 'myAddress', 'company', 'person', 'vcard', 'dao', 'relations']
+    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'company', 'person', 'vcard', 'dao', 'relations']
 
     static searchable = {
         name boost: 1.5
@@ -163,8 +163,17 @@ class CrmContact {
         return null
     }
 
-    transient CrmContactAddress getAddress() {
-        getMyAddress() ?: parent?.address
+    transient CrmContactAddress getAddress(String type = null) {
+        def a
+        if(type != null) {
+            a = addresses?.find{it.type.param == type}
+            if(! a) {
+                a = parent?.getAddress(type)
+            }
+        } else {
+            a = getMyAddress() ?: parent?.address
+        }
+        return a
     }
 
     transient CrmContactAddress getMyAddress() {
@@ -183,6 +192,16 @@ class CrmContact {
         }
         addr.preferred = true
         return addr
+    }
+
+    String getFullName() {
+        StringBuilder s = new StringBuilder()
+        s << name
+        if(parent) {
+            s << ", "
+            s << parent.name
+        }
+        s.toString()
     }
 
     transient boolean isCompany() {

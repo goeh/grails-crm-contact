@@ -6,15 +6,17 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
 
     def crmContactService
 
-    @Shared type
+    @Shared typePostal
+    @Shared typeVisit
 
     def setup() {
-        type = crmContactService.createAddressType(name: "Postal Address", param: "postal").save(failOnError: true, flush: true)
+        typePostal = crmContactService.createAddressType(name: "Postal Address", param: "postal").save(failOnError: true, flush: true)
+        typeVisit = crmContactService.createAddressType(name: "Visiting Address", param: "visit").save(failOnError: true, flush: true)
     }
 
     def "create a new company with two employees"() {
         when:
-        def company = crmContactService.createCompany(name: "Test Company", address: [type: type, address1: "Test Street 1", address2: "P.O Box 1234", postalCode: "12345", city: "Test City"])
+        def company = crmContactService.createCompany(name: "Test Company", address: [type: typePostal, address1: "Test Street 1", address2: "P.O Box 1234", postalCode: "12345", city: "Test City"])
 
         then:
         !company.hasErrors()
@@ -28,7 +30,7 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         when:
         def person1 = crmContactService.createPerson(firstName: "Joe", lastName: "Average", parent: company)
         def person2 = crmContactService.createPerson(firstName: "Jane", lastName: "Average", parent: company,
-                address: [type: type, address1: "Test Street 10", address2: "P.O Box 1234", postalCode: "12345", city: "Test City"])
+                address: [type: typePostal, address1: "Test Street 10", address2: "P.O Box 1234", postalCode: "12345", city: "Test City"])
 
         then:
         !person1.hasErrors()
@@ -58,10 +60,25 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         company.children.findAll { it.lastName == "Average" }.size() == 2
     }
 
+    def "create a company with two different addresses (postal and visit)"() {
+
+        when: "create a company with two addresses"
+        def company = crmContactService.createCompany(name: "Federal Company",
+                addresses: [[type: typePostal, address1: "Test Street 1", postalCode: "11111", city: "City 1"],
+                        [type: "visit", address1: "Test Street 2", postalCode: "22222", city: "City 2"]],
+                true)
+
+        then: "the company has two addresses"
+        company.addresses.size() == 2
+        company.getAddress('postal').postalCode == '11111'
+        company.getAddress('visit').postalCode == '22222'
+        company.getAddress('delivery') == null
+    }
+
     def "try to insert invalid address"() {
         when:
         def company = crmContactService.createCompany(name: "Invalid Company",
-                address: [type: type, address1: "Test Street 1", postalCode: "A POSTAL CODE THAT IS TOO LONG", city: "Test City"],
+                address: [type: typePostal, address1: "Test Street 1", postalCode: "A POSTAL CODE THAT IS TOO LONG", city: "Test City"],
                 true)
         then:
         company.hasErrors()
@@ -71,18 +88,18 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
     def "try to create company with duplicate number"() {
         given:
         def first = crmContactService.createCompany(name: "I was first!",
-                address: [type: type, address1: "Test Street 1", postalCode: "12345", city: "Test City"],
+                address: [type: typePostal, address1: "Test Street 1", postalCode: "12345", city: "Test City"],
                 true)
         def second = crmContactService.createCompany(name: "I was second!",
-                        address: [type: type, address1: "Test Street 2", postalCode: "23456", city: "Test City"],
-                        true)
+                address: [type: typePostal, address1: "Test Street 2", postalCode: "23456", city: "Test City"],
+                true)
         def third = crmContactService.createCompany(name: "I was third!",
-                        address: [type: type, address1: "Test Street 3", postalCode: "34567", city: "Test City"],
-                        true)
+                address: [type: typePostal, address1: "Test Street 3", postalCode: "34567", city: "Test City"],
+                true)
 
         when: "Try to create a company with same number as first company"
         def test = crmContactService.createCompany(name: "I was last!", number: first.number,
-                address: [type: type, address1: "Test Street 9", postalCode: "99999", city: "Test City"],
+                address: [type: typePostal, address1: "Test Street 9", postalCode: "99999", city: "Test City"],
                 true)
         then:
         Integer.valueOf(second.number) == (Integer.valueOf(first.number) + 1)

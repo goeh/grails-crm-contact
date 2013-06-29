@@ -35,7 +35,7 @@ class CrmContactService {
     @Listener(namespace = "crmContact", topic = "enableFeature")
     def enableFeature(event) {
         def tenant = crmSecurityService.getTenantInfo(event.tenant)
-        if(! tenant) {
+        if (!tenant) {
             throw new IllegalArgumentException("Cannot find tenant info for tenant [${event.tenant}], event=$event")
         }
         def locale = tenant.locale
@@ -46,16 +46,16 @@ class CrmContactService {
             crmTagService.createTag(name: CrmContact.name, multiple: true)
 
             // Postal address type
-            def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal", locale)
+            def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postadress", locale)
             createAddressType(name: s, param: "postal").save(failOnError: true)
             // Visit address type
-            s = messageSource.getMessage("crmAddressType.name.visit", null, "Visit", locale)
+            s = messageSource.getMessage("crmAddressType.name.visit", null, "Besöksadress", locale)
             createAddressType(name: "Besöksadress", param: "visit").save(failOnError: true)
             // Delivery address type
-            s = messageSource.getMessage("crmAddressType.name.delivery", null, "Delivery", locale)
+            s = messageSource.getMessage("crmAddressType.name.delivery", null, "Leveransadress", locale)
             createAddressType(name: "Leveransadress", param: "delivery").save(failOnError: true)
             // Invoice address type
-            s = messageSource.getMessage("crmAddressType.name.invoice", null, "Invoice", locale)
+            s = messageSource.getMessage("crmAddressType.name.invoice", null, "Fakturadress", locale)
             createAddressType(name: "Fakturaadress", param: "invoice").save(failOnError: true)
         }
     }
@@ -366,7 +366,6 @@ class CrmContactService {
         }
         def tenant = TenantUtils.tenant
         def crmContact = new CrmContact(tenantId: tenant)
-        def address = extractAddress(params)
         def args = [crmContact, params, [include: CrmContact.BIND_WHITELIST]]
         new BindDynamicMethod().invoke(crmContact, 'bind', args.toArray())
 
@@ -374,12 +373,29 @@ class CrmContactService {
             crmContact.username = crmSecurityService.currentUser?.username
         }
 
-        if (address) {
-            if (!address.type) {
+        def allAddresses = []
+        if (params.address) {
+            allAddresses << params.address
+        }
+        if (params.addresses) {
+            allAddresses.addAll(params.addresses)
+        }
+        def preferred = true
+        for (address in allAddresses) {
+            if (address.type instanceof CrmAddressType) {
+                // Nothing
+            } else if (address.type) {
+                def tmp = getAddressType(address.type.toString())
+                if (!tmp) {
+                    throw new IllegalArgumentException("Address type [${address.type}] not found")
+                }
+                address.type = tmp
+            } else {
                 address.type = createAddressType(name: "Postal Address", param: "postal", true)
             }
             if (address.preferred == null) {
-                address.preferred = true
+                address.preferred = preferred
+                preferred = false
             }
             def crmContactAddress = new CrmContactAddress(contact: crmContact)
             def addressArgs = [crmContactAddress, address]
@@ -412,7 +428,6 @@ class CrmContactService {
         }
         def tenant = TenantUtils.tenant
         def crmContact = new CrmContact(tenantId: tenant)
-        def address = extractAddress(params)
         def args = [crmContact, fixFirstLastName(params), [include: CrmContact.BIND_WHITELIST + ['parent']]]
         new BindDynamicMethod().invoke(crmContact, 'bind', args.toArray())
 
@@ -420,12 +435,29 @@ class CrmContactService {
             crmContact.username = crmSecurityService.currentUser?.username
         }
 
-        if (address) {
-            if (!address.type) {
+        def allAddresses = []
+        if (params.address) {
+            allAddresses << params.address
+        }
+        if (params.addresses) {
+            allAddresses.addAll(params.addresses)
+        }
+        def preferred = true
+        for (address in allAddresses) {
+            if (address.type instanceof CrmAddressType) {
+                // Nothing
+            } else if (address.type) {
+                def tmp = getAddressType(address.type.toString())
+                if (!tmp) {
+                    throw new IllegalArgumentException("Address type [${address.type}] not found")
+                }
+                address.type = tmp
+            } else {
                 address.type = createAddressType(name: "Postal Address", param: "postal", true)
             }
             if (address.preferred == null) {
-                address.preferred = true
+                address.preferred = preferred
+                preferred = false
             }
             def crmContactAddress = new CrmContactAddress(contact: crmContact)
             def addressArgs = [crmContactAddress, address]
@@ -495,12 +527,12 @@ class CrmContactService {
         return params
     }
 
-    private Map extractAddress(Map params) {
-        def address = params.remove('address')
+    private Map extractAddress(Map params, String prefix = 'address') {
+        def address = params.remove(prefix)
         def keys = params.keySet().toList() // toList() because clone not supported
 
         for (p in keys) {
-            if (p.startsWith('address.')) {
+            if (p.startsWith(prefix + '.')) {
                 params.remove(p)
             }
         }

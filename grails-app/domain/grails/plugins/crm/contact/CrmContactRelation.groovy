@@ -33,4 +33,16 @@ class CrmContactRelation {
     String toString() {
         type.toString()
     }
+
+    CrmContact getRelated(CrmContact origin) {
+        if(origin == null) {
+            throw new IllegalArgumentException("CrmContactRelation#getRelated() called with null argument")
+        }
+        if(origin.id == a?.id) {
+            return b
+        } else if(origin.id == b?.id) {
+            return a
+        }
+        return null
+    }
 }
