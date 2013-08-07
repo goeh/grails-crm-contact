@@ -17,6 +17,7 @@ class CrmContactRelationSpec extends grails.plugin.spock.IntegrationSpec {
 
     def "add relation between contacts"() {
         given:
+        def count = CrmContactRelation.count()
         def company = crmContactService.createCompany(name: "ACME Ltd.", true)
         def employee1 = crmContactService.createPerson(firstName: "Employee", lastName: "One", true)
         def employee2 = crmContactService.createPerson(firstName: "Employee", lastName: "Two", true)
@@ -31,5 +32,14 @@ class CrmContactRelationSpec extends grails.plugin.spock.IntegrationSpec {
         employee1.getRelations().size() == 1
         employee2.getRelations().size() == 1
         employee3.getRelations().size() == 0
+
+        when:
+        crmContactService.deleteContact(company)
+
+        then:
+        CrmContactRelation.count() == count
+
+        employee1.getRelations().size() == 0
+        employee2.getRelations().size() == 0
     }
 }

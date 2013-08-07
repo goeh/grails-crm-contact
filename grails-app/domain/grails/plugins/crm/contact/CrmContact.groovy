@@ -53,7 +53,8 @@ class CrmContact {
     String guid // this guid typically references the user that matches this contact.
     String username
 
-    static hasMany = [addresses: CrmContactAddress, children: CrmContact]
+    static hasMany = [addresses: CrmContactAddress, children: CrmContact, categories: CrmContactCategory]
+
     static constraints = {
         firstName(maxSize: 64, nullable: true, validator: { val, obj ->
             (val || obj.lastName || obj.name) ? true : 'blank'

@@ -64,6 +64,8 @@ class CrmContactService {
     def requestDeleteTenant(event) {
         def tenant = event.id
         def count = 0
+        count += CrmContactRelationType.countByTenantId(tenant)
+        count += CrmContactCategoryType.countByTenantId(tenant)
         count += CrmAddressType.countByTenantId(tenant)
         count += CrmContact.countByTenantId(tenant)
         return count ? [namespace: 'crmContact', topic: 'deleteTenant'] : null
@@ -73,16 +75,26 @@ class CrmContactService {
     def deleteTenant(event) {
         def tenant = event.id
         def count = 0
+
         // Delete all child contacts
         def result = CrmContact.findAllByTenantIdAndParentIsNotNull(tenant)
         count += result.size()
-        result*.delete()
+        for(crmContact in result) {
+            CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
+            crmContact.delete()
+        }
+
         // Delete all parent contacts
         result = CrmContact.findAllByTenantId(tenant)
         count += result.size()
-        result*.delete()
+        for(crmContact in result) {
+            CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
+            crmContact.delete()
+        }
 
         CrmAddressType.findAllByTenantId(tenant)*.delete()
+        CrmContactRelationType.findAllByTenantId(tenant)*.delete()
+        CrmContactCategoryType.findAllByTenantId(tenant)*.delete()
 
         log.warn("Deleted $count contacts in tenant $tenant")
     }
@@ -272,6 +284,18 @@ class CrmContactService {
                 }
             }
         }
+
+        if(query.category) {
+            // TODO Support collection of categories.
+            categories {
+                category {
+                    or {
+                        eq('param', query.category)
+                        ilike('name', SearchUtils.wildcard(query.category))
+                    }
+                }
+            }
+        }
     }
 
     CrmAddressType getAddressType(String param) {
@@ -355,6 +379,53 @@ class CrmContactService {
             relation = new CrmContactRelation(a: a, b: b, type: type, description: description).save(failOnError: true)
         }
         return relation
+    }
+
+    CrmContactCategoryType getCategoryType(String param) {
+        CrmContactCategoryType.findByParamAndTenantId(param, TenantUtils.tenant)
+    }
+
+    CrmContactCategoryType createCategoryType(Map params, boolean save = false) {
+        def tenant = TenantUtils.tenant
+        if (!params.param) {
+            params.param = paramify(params.name, new CrmContactCategoryType().constraints.param.maxSize)
+        }
+        def m = CrmContactCategoryType.findByParamAndTenantId(params.param, tenant)
+        if (!m) {
+            m = new CrmContactCategoryType()
+            def args = [m, params, [include: CrmContactCategoryType.BIND_WHITELIST]]
+            new BindDynamicMethod().invoke(m, 'bind', args.toArray())
+            m.tenantId = tenant
+            if (params.enabled == null) {
+                m.enabled = true
+            }
+            if (save) {
+                m.save()
+            } else {
+                m.validate()
+                m.clearErrors()
+            }
+        }
+        return m
+    }
+
+    CrmContactCategory addCategory(CrmContact crmContact, String categoryParam) {
+        def categoryType = getCategoryType(categoryParam)
+        if (!categoryType) {
+            throw new IllegalArgumentException("CrmContactCategoryType not found with param [$categoryParam]")
+        }
+        def category = CrmContactCategory.createCriteria().get() {
+            eq('contact', crmContact)
+            eq('category', categoryType)
+        }
+        if (!category) {
+            category = new CrmContactCategory(contact: crmContact, category: categoryType)
+            if(!category.hasErrors()) {
+                crmContact.addToCategories(category)
+                crmContact.save()
+            }
+        }
+        return category
     }
 
     CrmContact createCompany(Map<String, Object> params, boolean save = false) {
@@ -689,7 +760,12 @@ class CrmContactService {
         def tombstone = crmContact.toString()
         def id = crmContact.id
         def tenant = crmContact.tenantId
+
+        // CrmContactRelation has no belongsTo (CrmContact) so we must manually delete all relations first.
+        CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
+
         crmContact.delete()
+
         def username = crmSecurityService.currentUser?.username
         event(for: "crmContact", topic: "deleted", data: [id: id, tenant: tenant, user: username, name: tombstone])
         return tombstone
