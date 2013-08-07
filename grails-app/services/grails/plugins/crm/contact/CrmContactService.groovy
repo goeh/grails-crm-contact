@@ -315,7 +315,7 @@ class CrmContactService {
 
     CrmAddressType createAddressType(Map params, boolean save = false) {
         def tenant = TenantUtils.tenant
-        if (!params.param) {
+        if (!params.param && params.name) {
             params.param = paramify(params.name, new CrmAddressType().constraints.param.maxSize)
         }
         def m = CrmAddressType.findByParamAndTenantId(params.param, tenant)
@@ -343,7 +343,7 @@ class CrmContactService {
 
     CrmContactRelationType createRelationType(Map params, boolean save = false) {
         def tenant = TenantUtils.tenant
-        if (!params.param) {
+        if (!params.param && params.name) {
             params.param = paramify(params.name, new CrmContactRelationType().constraints.param.maxSize)
         }
         def m = CrmContactRelationType.findByParamAndTenantId(params.param, tenant)
@@ -387,7 +387,7 @@ class CrmContactService {
 
     CrmContactCategoryType createCategoryType(Map params, boolean save = false) {
         def tenant = TenantUtils.tenant
-        if (!params.param) {
+        if (!params.param && params.name) {
             params.param = paramify(params.name, new CrmContactCategoryType().constraints.param.maxSize)
         }
         def m = CrmContactCategoryType.findByParamAndTenantId(params.param, tenant)
