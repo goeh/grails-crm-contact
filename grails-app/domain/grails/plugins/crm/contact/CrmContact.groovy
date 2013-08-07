@@ -19,6 +19,8 @@ import grails.plugins.crm.core.SearchUtils
 import grails.plugins.crm.core.TenantEntity
 import grails.plugins.crm.core.AuditEntity
 import grails.plugins.sequence.SequenceEntity
+
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 
 @TenantEntity
@@ -164,7 +166,7 @@ class CrmContact {
     }
 
     transient CrmContactAddress getAddress(String type = null) {
-        def a
+        CrmContactAddress a
         if(type != null) {
             a = addresses?.find{it.type.param == type}
             if(! a) {
@@ -181,12 +183,12 @@ class CrmContact {
     }
 
     def setAddress(addressBean) {
-        def addr = getMyAddress()
+        CrmContactAddress addr = getMyAddress()
         if (!addr) {
             addr = new CrmContactAddress(preferred: true)
             addToAddresses(addr)
         }
-        def props = ['address1', 'address2', 'address3', 'postalCode', 'city', 'region', 'country', 'timezone', 'latitude', 'longitude']
+        final List<String> props = ['address1', 'address2', 'address3', 'postalCode', 'city', 'region', 'country', 'timezone', 'latitude', 'longitude']
         for (p in props) {
             addr[p] = addressBean[p]
         }
@@ -195,7 +197,7 @@ class CrmContact {
     }
 
     String getFullName() {
-        StringBuilder s = new StringBuilder()
+        final StringBuilder s = new StringBuilder()
         s << name
         if(parent) {
             s << ", "
@@ -217,7 +219,7 @@ class CrmContact {
     }
 
     transient String getVcard() {
-        def postalAddress = new StringBuilder()
+        final StringBuilder postalAddress = new StringBuilder()
         if (address?.address1) {
             postalAddress << address.address1
         }
@@ -233,7 +235,7 @@ class CrmContact {
             }
             postalAddress << address.address3
         }
-        def s = new StringBuilder()
+        final StringBuilder s = new StringBuilder()
         s << "BEGIN:VCARD\n"
         s << "VERSION:3.0\n"
         s << "N:${lastName ?: ''};${firstName ?: ''};;;\n"
@@ -246,7 +248,7 @@ class CrmContact {
         s << "EMAIL;type=internet,pref:${email ?: ''}\n"
         s << "ADR;TYPE=work,postal,pref:;;${postalAddress};${address?.city ?: ''};${address?.region ?: ''};${address?.postalCode ?: ''};${address?.country ?: ''}\n"
 
-        def timestampFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+        final DateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
         s << "REV:${timestampFormat.format(lastUpdated ?: dateCreated)}\n"
 
         s << "END:VCARD\n"
@@ -254,10 +256,10 @@ class CrmContact {
         s.toString()
     }
 
-    private static final List DAO_PROPS = ['name', 'firstName', 'lastName', 'title', 'telephone', 'mobile', 'fax', 'email', 'url',
-            'guid', 'username', 'number', 'number2', 'ssn', 'duns', 'description', 'gender', 'birthYear', 'birthMonth', 'birthDay']
+    public static final List<String> BIND_WHITELIST = ['name', 'firstName', 'lastName', 'title', 'telephone', 'mobile', 'fax', 'email', 'url',
+            'guid', 'username', 'number', 'number2', 'ssn', 'duns', 'description', 'gender', 'birthYear', 'birthMonth', 'birthDay'].asImmutable()
 
-    private Map getSelfProperties(List<String> props) {
+    private Map<String, Object> getSelfProperties(List<String> props) {
         props.inject([:]) { m, i ->
             def v = this."$i"
             if (v != null) {
@@ -268,16 +270,16 @@ class CrmContact {
     }
 
     transient Map<String, Object> getDao(boolean includeChildren = true) {
-        def map = getSelfProperties(DAO_PROPS)
+        final Map<String, Object> map = getSelfProperties(BIND_WHITELIST)
+        map.tenant = tenantId
         map.address = address?.getDao() ?: [:]
         if (parent) {
             map.parent = parent.getDao(false)
         }
         if (includeChildren && children) {
-            map.children = children.collect { it.getSelfProperties(DAO_PROPS) }
+            map.children = children.collect { it.getSelfProperties(BIND_WHITELIST) }
         }
         return map
     }
 
-    public static final List BIND_WHITELIST = DAO_PROPS.asImmutable()
 }
