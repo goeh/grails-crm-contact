@@ -409,10 +409,14 @@ class CrmContactService {
         return m
     }
 
-    CrmContactCategory addCategory(CrmContact crmContact, String categoryParam) {
+    CrmContactCategory addCategory(CrmContact crmContact, String categoryParam, String categoryName = null) {
         def categoryType = getCategoryType(categoryParam)
         if (!categoryType) {
-            throw new IllegalArgumentException("CrmContactCategoryType not found with param [$categoryParam]")
+            if(categoryName) {
+                categoryType = createCategoryType(name: categoryName, param: categoryParam, true)
+            } else {
+                throw new IllegalArgumentException("CrmContactCategoryType not found with param [$categoryParam]")
+            }
         }
         def category = CrmContactCategory.createCriteria().get() {
             eq('contact', crmContact)

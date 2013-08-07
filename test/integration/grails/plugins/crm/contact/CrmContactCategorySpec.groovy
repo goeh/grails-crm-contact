@@ -46,6 +46,24 @@ class CrmContactCategorySpec extends grails.plugin.spock.IntegrationSpec {
         CrmContactCategory.count() == count
     }
 
+    def "add non-existing category"() {
+        given:
+        def company = crmContactService.createCompany(name: "Technipelago AB", true)
+
+        when:
+        crmContactService.addCategory(company, "sw", "Software")
+
+        then:
+        company.categories.find{it}.toString() == "Software"
+
+
+        when:
+        crmContactService.addCategory(company, "hw")
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
     def "search contact by category"() {
         given:
         def c1 = crmContactService.createCompany(name: "ACME Ltd.", true)
