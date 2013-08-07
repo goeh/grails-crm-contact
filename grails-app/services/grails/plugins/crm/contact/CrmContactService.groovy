@@ -41,7 +41,7 @@ class CrmContactService {
         def locale = tenant.locale
         TenantUtils.withTenant(tenant.id) {
 
-            sequenceGeneratorService.initSequence(CrmContact, null, tenant.id, 1, "%s")
+            sequenceGeneratorService.initSequence(CrmContact, null, tenant.id, null, "%s")
 
             crmTagService.createTag(name: CrmContact.name, multiple: true)
 
@@ -88,7 +88,7 @@ class CrmContactService {
     }
 
     CrmContact getContact(Long id) {
-        CrmContact.get(id)
+        CrmContact.findByIdAndTenantId(id, TenantUtils.tenant, [cache: true])
     }
 
     CrmContact findByNumber(String number) {
@@ -105,6 +105,10 @@ class CrmContactService {
 
     CrmContact findByDuns(String number) {
         CrmContact.findByDunsAndTenantId(number, TenantUtils.tenant, [cache: true])
+    }
+
+    CrmContact findByGuid(String guid) {
+        CrmContact.findByGuidAndTenantId(guid, TenantUtils.tenant, [cache: true])
     }
 
     CrmContact findByName(String name) {
@@ -274,21 +278,23 @@ class CrmContactService {
         CrmAddressType.findByParamAndTenantId(param, TenantUtils.tenant)
     }
 
+    private String paramify(String name, Integer maxSize = 20) {
+        def param = name.toLowerCase().replace(' ', '-')
+        if (param.length() > maxSize) {
+            param = param[0..(maxSize - 1)]
+            if (param[-1] == '-') {
+                param = param[0..-2]
+            }
+        }
+        return param
+    }
+
     CrmAddressType createAddressType(Map params, boolean save = false) {
         def tenant = TenantUtils.tenant
-        def param = params.param
-        if (!param) {
-            param = params.name.toLowerCase().replace(' ', '-')
-            def maxSize = new CrmAddressType().constraints.param.maxSize
-            if (param.length() > maxSize) {
-                param = param[0..(maxSize - 1)]
-                if (param[-1] == '-') {
-                    param = param[0..-2]
-                }
-            }
-            params.param = param
+        if (!params.param) {
+            params.param = paramify(params.name, new CrmAddressType().constraints.param.maxSize)
         }
-        def m = CrmAddressType.findByParamAndTenantId(param, tenant)
+        def m = CrmAddressType.findByParamAndTenantId(params.param, tenant)
         if (!m) {
             m = new CrmAddressType()
             def args = [m, params, [include: CrmAddressType.BIND_WHITELIST]]
@@ -313,19 +319,10 @@ class CrmContactService {
 
     CrmContactRelationType createRelationType(Map params, boolean save = false) {
         def tenant = TenantUtils.tenant
-        def param = params.param
-        if (!param) {
-            param = params.name.toLowerCase().replace(' ', '-')
-            def maxSize = new CrmContactRelationType().constraints.param.maxSize
-            if (param.length() > maxSize) {
-                param = param[0..(maxSize - 1)]
-                if (param[-1] == '-') {
-                    param = param[0..-2]
-                }
-            }
-            params.param = param
+        if (!params.param) {
+            params.param = paramify(params.name, new CrmContactRelationType().constraints.param.maxSize)
         }
-        def m = CrmContactRelationType.findByParamAndTenantId(param, tenant)
+        def m = CrmContactRelationType.findByParamAndTenantId(params.param, tenant)
         if (!m) {
             m = new CrmContactRelationType()
             def args = [m, params, [include: CrmContactRelationType.BIND_WHITELIST]]
