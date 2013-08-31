@@ -22,7 +22,7 @@ class CrmContactGrailsPlugin {
     // the plugin version
     def version = "1.2.0-SNAPSHOT"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.0 > *"
+    def grailsVersion = "2.2 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     // Load after selection plugin since we add criteria to GormSelection

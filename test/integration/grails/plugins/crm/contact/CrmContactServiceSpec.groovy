@@ -133,4 +133,27 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         t1 == t2
         !t1.is(t2)
     }
+
+    def "create and list category types"() {
+        when:
+        crmContactService.createCategoryType(name: "Test #1", param: "test1", true)
+        crmContactService.createCategoryType(name: "Test #2", param: "test2", true)
+        crmContactService.createCategoryType(name: "Test #3", param: "test3", true)
+
+        then:
+        crmContactService.listCategoryType("test").size() == 3
+        crmContactService.listCategoryType("test1").size() == 1
+        crmContactService.listCategoryType("test2").size() == 1
+        crmContactService.listCategoryType("test3").size() == 1
+
+        when:
+        CrmContactCategoryType.withTransaction {
+            crmContactService.listCategoryType("test").each { type ->
+                crmContactService.deleteCategoryType(type)
+            }
+        }
+
+        then:
+        crmContactService.listCategoryType("test").size() == 0
+    }
 }

@@ -79,7 +79,7 @@ class CrmContactService {
         // Delete all child contacts
         def result = CrmContact.findAllByTenantIdAndParentIsNotNull(tenant)
         count += result.size()
-        for(crmContact in result) {
+        for (crmContact in result) {
             CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
             crmContact.delete()
         }
@@ -87,7 +87,7 @@ class CrmContactService {
         // Delete all parent contacts
         result = CrmContact.findAllByTenantId(tenant)
         count += result.size()
-        for(crmContact in result) {
+        for (crmContact in result) {
             CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
             crmContact.delete()
         }
@@ -125,6 +125,10 @@ class CrmContactService {
 
     CrmContact findByName(String name) {
         CrmContact.findByNameAndTenantId(name, TenantUtils.tenant, [cache: true])
+    }
+
+    CrmContact findByEmail(String email) {
+        CrmContact.findByEmailAndTenantId(email, TenantUtils.tenant, [cache: true])
     }
 
     /**
@@ -285,7 +289,7 @@ class CrmContactService {
             }
         }
 
-        if(query.category) {
+        if (query.category) {
             // TODO Support collection of categories.
             categories {
                 category {
@@ -412,7 +416,7 @@ class CrmContactService {
     CrmContactCategory addCategory(CrmContact crmContact, String categoryParam, String categoryName = null) {
         def categoryType = getCategoryType(categoryParam)
         if (!categoryType) {
-            if(categoryName) {
+            if (categoryName) {
                 categoryType = createCategoryType(name: categoryName, param: categoryParam, true)
             } else {
                 throw new IllegalArgumentException("CrmContactCategoryType not found with param [$categoryParam]")
@@ -424,12 +428,36 @@ class CrmContactService {
         }
         if (!category) {
             category = new CrmContactCategory(contact: crmContact, category: categoryType)
-            if(!category.hasErrors()) {
+            if (!category.hasErrors()) {
                 crmContact.addToCategories(category)
                 crmContact.save()
             }
         }
         return category
+    }
+
+    List<CrmContactCategoryType> listCategoryType(String name, Map params = [:]) {
+        CrmContactCategoryType.createCriteria().list(params) {
+            eq('tenantId', TenantUtils.tenant)
+            if (name) {
+                or {
+                    ilike('name', SearchUtils.wildcard(name))
+                    eq('param', name)
+                }
+            }
+        }
+    }
+
+    String deleteCategoryType(CrmContactCategoryType category) {
+        def tombstone = category.toString()
+        def id = category.id
+        def tenant = category.tenantId
+
+        category.delete()
+
+        def username = crmSecurityService.currentUser?.username
+        event(for: "crmContactCategoryType", topic: "deleted", data: [id: id, tenant: tenant, user: username, name: tombstone])
+        return tombstone
     }
 
     CrmContact createCompany(Map<String, Object> params, boolean save = false) {
