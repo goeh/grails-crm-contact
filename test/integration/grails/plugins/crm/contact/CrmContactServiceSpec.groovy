@@ -156,4 +156,18 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         then:
         crmContactService.listCategoryType("test").size() == 0
     }
+
+    def "find contacts by tag"() {
+        when:
+        new CrmContact(firstName: "Developer", lastName: "One").save(failOnError: true).setTagValue("grails").setTagValue("groovy").setTagValue("java").setTagValue("scala")
+        new CrmContact(firstName: "Developer", lastName: "Two").save(failOnError: true).setTagValue("groovy").setTagValue("java").setTagValue("scala")
+        new CrmContact(firstName: "Developer", lastName: "Three").save(failOnError: true).setTagValue("java").setTagValue("scala")
+        new CrmContact(firstName: "Developer", lastName: "Four").save(failOnError: true).setTagValue("grails").setTagValue("groovy")
+        new CrmContact(firstName: "Developer", lastName: "Five").save(failOnError: true).setTagValue("grails").setTagValue("groovy").setTagValue("java")
+
+        then:
+        crmContactService.list([tags: "java"], [:]).size() == 4
+        crmContactService.list([tags: "java,scala"], [:]).size() == 4
+        crmContactService.list([tags: "groovy&grails"], [:]).size() == 3
+    }
 }
