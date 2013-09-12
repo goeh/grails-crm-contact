@@ -15,13 +15,15 @@
  */
 package grails.plugins.crm.contact
 
-import grails.plugins.crm.core.SearchUtils
 import grails.plugins.crm.core.TenantEntity
 import grails.plugins.crm.core.AuditEntity
 import grails.plugins.sequence.SequenceEntity
+import org.apache.commons.codec.language.DoubleMetaphone
+import org.apache.commons.codec.language.Soundex
 
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.regex.Pattern
 
 @TenantEntity
 @AuditEntity
@@ -128,7 +130,7 @@ class CrmContact {
         } else if (lastName) {
             name = lastName
         }
-        namePhonetic = name ? SearchUtils.doubleMetaphoneEncode(name) : null
+        namePhonetic = name ? CrmContact.doubleMetaphoneEncode(name) : null
 
         if (duns && domainClass.grailsApplication.config.crm.contact.duns.strict) {
             duns = duns.replaceAll(/\D/, '').trim() ?: null
@@ -215,6 +217,7 @@ class CrmContact {
         (firstName || lastName)
     }
 
+    @Override
     String toString() {
         name
     }
@@ -283,4 +286,41 @@ class CrmContact {
         return map
     }
 
+    static String soundexEncode(final String s) {
+        if(! s) {
+            return null
+        }
+        String soundex
+        try {
+            soundex = new Soundex().encode(getNormalizedName(s))
+        } catch(IllegalArgumentException e) {
+            System.err.println("WARNING: Failed to soundex encode '${s}'")
+            soundex = null
+        }
+        return soundex
+    }
+
+    static String doubleMetaphoneEncode(final String s) {
+        if(! s) {
+            return null
+        }
+        String result
+        try {
+            result = new DoubleMetaphone().encode(getNormalizedName(s))
+        } catch(IllegalArgumentException e) {
+            System.err.println("WARNING: Failed to double metaphone encode '${s}'")
+            result = null
+        }
+        return result
+    }
+
+    private static final Pattern NORMALIZE_REGEX1 = Pattern.compile(/^(ab|hb|kb|aktiebolaget)\s+/)
+    private static final Pattern NORMALIZE_REGEX2 = Pattern.compile(/(ab|hb|kb|aktiebolag|oy|ltd|inc|llc)\.?$/)
+
+    /**
+     * Swedish hack! Remove company name prefix and suffix.
+     */
+    static String getNormalizedName(final String name) {
+        name.toLowerCase().replaceAll(NORMALIZE_REGEX1, '').replaceAll(NORMALIZE_REGEX2, '').trim()
+    }
 }
