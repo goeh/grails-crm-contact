@@ -20,13 +20,13 @@ class CrmContactGrailsPlugin {
     // Dependency group
     def groupId = "grails.crm"
     // the plugin version
-    def version = "1.2.0-SNAPSHOT"
+    def version = "1.2.0"
     // the version or versions of Grails the plugin is designed for
     def grailsVersion = "2.2 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     // Load after selection plugin since we add criteria to GormSelection
-    def loadAfter = ['crmCore', 'selection']
+    def loadAfter = ['crmCore', 'selection', 'crmTags']
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp",
