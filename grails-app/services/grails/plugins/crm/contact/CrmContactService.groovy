@@ -15,8 +15,10 @@
  */
 package grails.plugins.crm.contact
 
+import grails.plugins.crm.core.DateUtils
 import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.PagedResultList
+import groovy.transform.CompileStatic
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
 import grails.plugins.crm.core.SearchUtils
 import grails.events.Listener
@@ -176,6 +178,7 @@ class CrmContactService {
         return result
     }
 
+    @CompileStatic
     private boolean hasAddressQuery(Map query) {
         for (prop in ['address1', 'address2', 'address3', 'postalCode', 'city', 'region', 'country', 'timezone', 'latitude', 'longitude']) {
             if (query[prop]) {
@@ -187,11 +190,8 @@ class CrmContactService {
 
     def contactCriteria = { query, count, sort ->
         def tagged
-        if (query.tags) {
-            tagged = crmTagService.findAllByTag(CrmContact, query.tags).collect { it.id }
-            if (!tagged) {
-                tagged = [0L] // Force no search result.
-            }
+        if(query.tags) {
+            tagged = crmTagService.findAllIdByTag(CrmContact, query.tags) ?: [0L]
         }
 
         projections {
@@ -289,6 +289,28 @@ class CrmContactService {
             }
         }
 
+        if (query.dateCreated) {
+            if (query.dateCreated[0] == '<') {
+                lt('dateCreated', DateUtils.getDateSpan(DateUtils.parseDate(query.dateCreated.substring(1)))[0])
+            } else if (query.dateCreated[0] == '>') {
+                gt('dateCreated', DateUtils.getDateSpan(DateUtils.parseDate(query.dateCreated.substring(1)))[1])
+            } else {
+                def (am, pm) = DateUtils.getDateSpan(DateUtils.parseDate(query.dateCreated))
+                between('dateCreated', am, pm)
+            }
+        }
+
+        if (query.lastUpdated) {
+            if (query.lastUpdated[0] == '<') {
+                lt('lastUpdated', DateUtils.getDateSpan(DateUtils.parseDate(query.lastUpdated.substring(1)))[0])
+            } else if (query.lastUpdated[0] == '>') {
+                gt('lastUpdated', DateUtils.getDateSpan(DateUtils.parseDate(query.lastUpdated.substring(1)))[1])
+            } else {
+                def (am, pm) = DateUtils.getDateSpan(DateUtils.parseDate(query.lastUpdated))
+                between('lastUpdated', am, pm)
+            }
+        }
+
         if (query.category) {
             // TODO Support collection of categories.
             categories {
@@ -306,15 +328,16 @@ class CrmContactService {
         CrmAddressType.findByParamAndTenantId(param, TenantUtils.tenant)
     }
 
-    private String paramify(String name, Integer maxSize = 20) {
-        def param = name.toLowerCase().replace(' ', '-')
+    @CompileStatic
+    private String paramify(final String name, Integer maxSize = 20) {
+        String param = name.toLowerCase().replace(' ', '-')
         if (param.length() > maxSize) {
             param = param[0..(maxSize - 1)]
             if (param[-1] == '-') {
                 param = param[0..-2]
             }
         }
-        return param
+        param
     }
 
     CrmAddressType createAddressType(Map params, boolean save = false) {
@@ -616,18 +639,18 @@ class CrmContactService {
         return destAddress
     }
 
-    private Map fixFirstLastName(Map params) {
+    private Map fixFirstLastName(final Map params) {
         if (params.firstName && !params.lastName) {
-            def tmp = params.firstName.split(' ')
+            String[] tmp = params.firstName.split(' ')
             params.firstName = tmp[0]
-            if (tmp.size() > 1) {
+            if (tmp.length > 1) {
                 params.lastName = tmp[1..-1].join(' ')
             }
         }
         return params
     }
 
-    private Map extractAddress(Map params, String prefix = 'address') {
+    private Map extractAddress(final Map params, String prefix = 'address') {
         def address = params.remove(prefix)
         def keys = params.keySet().toList() // toList() because clone not supported
 
