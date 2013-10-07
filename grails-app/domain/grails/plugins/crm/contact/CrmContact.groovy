@@ -17,6 +17,7 @@ package grails.plugins.crm.contact
 
 import grails.plugins.crm.core.TenantEntity
 import grails.plugins.crm.core.AuditEntity
+import grails.plugins.crm.core.CrmContactInformation
 import grails.plugins.sequence.SequenceEntity
 import org.apache.commons.codec.language.DoubleMetaphone
 import org.apache.commons.codec.language.Soundex
@@ -28,7 +29,7 @@ import java.util.regex.Pattern
 @TenantEntity
 @AuditEntity
 @SequenceEntity(property = "number", maxSize = 20, blank = false, unique = "tenantId")
-class CrmContact {
+class CrmContact implements CrmContactInformation {
 
     private static final int DUNS_NUMBER_LENGTH = 9
 
@@ -105,7 +106,7 @@ class CrmContact {
         //addresses cascade: 'all-delete-orphan'
     }
 
-    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'company', 'person', 'vcard', 'dao', 'relations']
+    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'company', 'person', 'vcard', 'dao', 'relations']
 
     static searchable = {
         name boost: 1.5
@@ -199,6 +200,18 @@ class CrmContact {
         return addr
     }
 
+    @Override
+    transient String getFullAddress() {
+        def a = getAddress()
+        return a ? a.toString() : ''
+    }
+
+    @Override
+    transient String getCompanyName() {
+        parent?.name
+    }
+
+    @Override
     String getFullName() {
         final StringBuilder s = new StringBuilder()
         s << name
