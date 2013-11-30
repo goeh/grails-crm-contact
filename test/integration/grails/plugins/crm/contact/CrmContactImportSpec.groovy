@@ -1,6 +1,7 @@
 package grails.plugins.crm.contact
 
 import grails.plugins.crm.core.TenantUtils
+import spock.lang.Ignore
 import spock.lang.Shared
 
 /**
@@ -17,6 +18,7 @@ class CrmContactImportSpec extends grails.plugin.spock.IntegrationSpec {
         type = crmContactService.createAddressType(name: "Postal Address", param: "postal").save(failOnError: true, flush: true)
     }
 
+    @Ignore
     def "import some companies"() {
         given:
         def file = File.createTempFile("crm", ".csv")
