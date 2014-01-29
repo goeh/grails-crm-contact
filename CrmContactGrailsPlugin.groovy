@@ -26,11 +26,11 @@ class CrmContactGrailsPlugin {
             "grails-app/views/error.gsp",
             "src/groovy/grails/plugins/crm/contact/TestSecurityDelegate.groovy"
     ]
-    def title = "Grails CRM Contact"
+    def title = "GR8 CRM Contact"
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def description = '''
-Provides "headless" contact management features for Grails CRM.
+Provides "headless" contact management features for GR8 CRM.
 This plugin provides no user interface, just domain classes and services for contact management.
 For user interface see the crm-contact-lite plugin which provides a twitter bootstrap user interface.
 '''
