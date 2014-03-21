@@ -815,14 +815,18 @@ class CrmContactService {
         def tombstone = crmContact.toString()
         def id = crmContact.id
         def tenant = crmContact.tenantId
+        def username = crmSecurityService.currentUser?.username
+
+        event(for: "crmContact", topic: "delete", fork: false, data: [id: id, tenant: tenant, user: username, name: tombstone])
 
         // CrmContactRelation has no belongsTo (CrmContact) so we must manually delete all relations first.
         CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
 
-        crmContact.delete()
+        crmContact.delete(flush:true)
+        log.debug "Deleted contact #$id in tenant $tenant \"${tombstone}\""
 
-        def username = crmSecurityService.currentUser?.username
         event(for: "crmContact", topic: "deleted", data: [id: id, tenant: tenant, user: username, name: tombstone])
+
         return tombstone
     }
 
