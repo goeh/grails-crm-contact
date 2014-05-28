@@ -48,17 +48,17 @@ class CrmContactService {
             crmTagService.createTag(name: CrmContact.name, multiple: true)
 
             // Postal address type
-            def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postadress", locale)
+            def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
             createAddressType(name: s, param: "postal").save(failOnError: true)
             // Visit address type
-            s = messageSource.getMessage("crmAddressType.name.visit", null, "Besöksadress", locale)
-            createAddressType(name: "Besöksadress", param: "visit").save(failOnError: true)
+            s = messageSource.getMessage("crmAddressType.name.visit", null, "Visit Address", locale)
+            createAddressType(name: s, param: "visit").save(failOnError: true)
             // Delivery address type
-            s = messageSource.getMessage("crmAddressType.name.delivery", null, "Leveransadress", locale)
-            createAddressType(name: "Leveransadress", param: "delivery").save(failOnError: true)
+            s = messageSource.getMessage("crmAddressType.name.delivery", null, "Delivery Address", locale)
+            createAddressType(name: s, param: "delivery").save(failOnError: true)
             // Invoice address type
-            s = messageSource.getMessage("crmAddressType.name.invoice", null, "Fakturadress", locale)
-            createAddressType(name: "Fakturaadress", param: "invoice").save(failOnError: true)
+            s = messageSource.getMessage("crmAddressType.name.invoice", null, "Invoice Address", locale)
+            createAddressType(name: s, param: "invoice").save(failOnError: true)
         }
     }
 
@@ -488,6 +488,7 @@ class CrmContactService {
             throw new IllegalArgumentException("Mandatory parameter [name] is missing")
         }
         def tenant = TenantUtils.tenant
+        def tenantInfo = crmSecurityService.getTenantInfo(tenant)
         def crmContact = new CrmContact(tenantId: tenant)
         def args = [crmContact, params, [include: CrmContact.BIND_WHITELIST]]
         new BindDynamicMethod().invoke(crmContact, 'bind', args.toArray())
@@ -514,7 +515,8 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                address.type = createAddressType(name: "Postal Address", param: "postal", true)
+                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo.locale)
+                address.type = createAddressType(name: s, param: "postal", true)
             }
             if (address.preferred == null) {
                 address.preferred = preferred
@@ -550,6 +552,7 @@ class CrmContactService {
             throw new IllegalArgumentException("Mandatory parameter [firstName or lastName] is missing")
         }
         def tenant = TenantUtils.tenant
+        def tenantInfo = crmSecurityService.getTenantInfo(tenant)
         def crmContact = new CrmContact(tenantId: tenant)
         def args = [crmContact, fixFirstLastName(params), [include: CrmContact.BIND_WHITELIST + ['parent']]]
         new BindDynamicMethod().invoke(crmContact, 'bind', args.toArray())
@@ -576,7 +579,8 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                address.type = createAddressType(name: "Postal Address", param: "postal", true)
+                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo.locale)
+                address.type = createAddressType(name: s, param: "postal", true)
             }
             if (address.preferred == null) {
                 address.preferred = preferred
