@@ -190,7 +190,7 @@ class CrmContactService {
 
     def contactCriteria = { query, count, sort ->
         def tagged
-        if(query.tags) {
+        if (query.tags) {
             tagged = crmTagService.findAllIdByTag(CrmContact, query.tags) ?: [0L]
         }
 
@@ -488,7 +488,6 @@ class CrmContactService {
             throw new IllegalArgumentException("Mandatory parameter [name] is missing")
         }
         def tenant = TenantUtils.tenant
-        def tenantInfo = crmSecurityService.getTenantInfo(tenant)
         def crmContact = new CrmContact(tenantId: tenant)
         def args = [crmContact, params, [include: CrmContact.BIND_WHITELIST]]
         new BindDynamicMethod().invoke(crmContact, 'bind', args.toArray())
@@ -515,7 +514,9 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo?.locale)
+                def tenantInfo = crmSecurityService.getTenantInfo(tenant)
+                def locale = tenantInfo ? tenantInfo.locale : Locale.getDefault()
+                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
                 address.type = createAddressType(name: s, param: "postal", true)
             }
             if (address.preferred == null) {
@@ -552,7 +553,6 @@ class CrmContactService {
             throw new IllegalArgumentException("Mandatory parameter [firstName or lastName] is missing")
         }
         def tenant = TenantUtils.tenant
-        def tenantInfo = crmSecurityService.getTenantInfo(tenant)
         def crmContact = new CrmContact(tenantId: tenant)
         def args = [crmContact, fixFirstLastName(params), [include: CrmContact.BIND_WHITELIST + ['parent']]]
         new BindDynamicMethod().invoke(crmContact, 'bind', args.toArray())
@@ -579,7 +579,9 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo?.locale)
+                def tenantInfo = crmSecurityService.getTenantInfo(tenant)
+                def locale = tenantInfo ? tenantInfo.locale : Locale.getDefault()
+                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
                 address.type = createAddressType(name: s, param: "postal", true)
             }
             if (address.preferred == null) {
@@ -826,7 +828,7 @@ class CrmContactService {
         // CrmContactRelation has no belongsTo (CrmContact) so we must manually delete all relations first.
         CrmContactRelation.executeUpdate("delete CrmContactRelation r where r.a = :contact or r.b = :contact", [contact: crmContact])
 
-        crmContact.delete(flush:true)
+        crmContact.delete(flush: true)
         log.debug "Deleted contact #$id in tenant $tenant \"${tombstone}\""
 
         event(for: "crmContact", topic: "deleted", data: [id: id, tenant: tenant, user: username, name: tombstone])
