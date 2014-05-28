@@ -515,7 +515,7 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo.locale)
+                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo?.locale)
                 address.type = createAddressType(name: s, param: "postal", true)
             }
             if (address.preferred == null) {
@@ -579,7 +579,7 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo.locale)
+                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", tenantInfo?.locale)
                 address.type = createAddressType(name: s, param: "postal", true)
             }
             if (address.preferred == null) {
