@@ -39,8 +39,8 @@ grails.project.dependency.resolution = {
         runtime "grails.crm:crm-security:latest.integration"
         runtime "grails.crm:crm-tags:latest.integration"
 
-        compile ":sequence-generator:latest.integration"
-        compile ":selection:latest.integration"
+        compile ":sequence-generator:1.0"
+        compile ":selection:0.9.5"
     }
 }
 
