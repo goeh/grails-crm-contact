@@ -21,6 +21,7 @@ import grails.plugins.crm.core.PagedResultList
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
 import grails.plugins.crm.core.SearchUtils
+import grails.plugins.selection.Selectable
 import grails.events.Listener
 import java.util.regex.Pattern
 
@@ -139,6 +140,7 @@ class CrmContactService {
      * @param params pagination parameters
      * @return List of CrmContact domain instances
      */
+    @Selectable
     def list(Map params = [:]) {
         list([:], params)
     }
@@ -150,6 +152,7 @@ class CrmContactService {
      * @param params pagination parameters
      * @return List of CrmContact domain instances
      */
+    @Selectable
     synchronized def list(Map query, Map params) {
         def result
         try {
