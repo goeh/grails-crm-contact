@@ -141,7 +141,7 @@ class CrmContactService {
      * @return List of CrmContact domain instances
      */
     @Selectable
-    def list(Map params = [:]) {
+    PagedResultList<CrmContact> list(Map params = [:]) {
         list([:], params)
     }
 
@@ -153,7 +153,7 @@ class CrmContactService {
      * @return List of CrmContact domain instances
      */
     @Selectable
-    synchronized def list(Map query, Map params) {
+    synchronized PagedResultList<CrmContact> list(Map query, Map params) {
         def result
         try {
             def totalCount = CrmContact.createCriteria().get {
