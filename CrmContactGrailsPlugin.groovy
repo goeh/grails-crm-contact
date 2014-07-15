@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 Goran Ehrsson.
+ * Copyright (c) 2014 Goran Ehrsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,8 +17,8 @@
 import grails.plugins.crm.contact.CrmContact
 
 class CrmContactGrailsPlugin {
-    def groupId = "grails.crm"
-    def version = "1.2.6"
+    def groupId = "gr8crm"
+    def version = "2.0.0"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore', 'selection', 'crmTags']
@@ -34,7 +34,7 @@ Provides "headless" contact management features for GR8 CRM.
 This plugin provides no user interface, just domain classes and services for contact management.
 For user interface see the crm-contact-lite plugin which provides a twitter bootstrap user interface.
 '''
-    def documentation = "https://github.com/goeh/grails-crm-contact"
+    def documentation = "http://gr8crm.github.io/plugins/crm-contact/crm-contact.html"
     def license = "APACHE"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-contact/issues"]
