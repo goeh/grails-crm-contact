@@ -1,0 +1,134 @@
+= GR8 CRM - Contact Management Plugin
+Göran Ehrsson <goran@technipelago.se>
+:description: Official documentation for the GR8 CRM Contact Management Plugin
+:keywords: groovy, grails, crm, gr8crm, documentation
+:toc:
+:numbered:
+:icons: font
+:imagesdir: ./images
+:source-highlighter: prettify
+:homepage: http://gr8crm.github.io
+:gr8crm: GR8 CRM
+:gr8source: https://github.com/goeh/grails-crm-contact
+:license: This plugin is licensed with http://www.apache.org/licenses/LICENSE-2.0.html[Apache License version 2.0]
+
+== Introduction
+
+{gr8crm} is a set of http://www.grails.org/[Grails Web Application Framework]
+plugins that makes it easy to develop web applications with CRM functionality.
+
+=== Customer Relationship Management
+
+Customer relationship management (CRM) is a system for managing a company’s interactions with current and future customers.
+It involves using technology to organize, automate and synchronize sales, marketing, customer service, and technical support.
+http://en.wikipedia.org/wiki/Customer_relationship_management[Wikipedia]
+
+The {gr8crm} "Ecosystem" currently contains over 40 Grails plugins. For a complete list of plugins see http://gr8crm.github.io.
+
+Each {gr8crm} plugin defines a http://martinfowler.com/bliki/BoundedContext.html[Bounded Context]
+that focus on one specific domain, for example *contact*, *project* or *document*.
+
+== Contact Management Plugin
+
+The +crm-contact+ plugin is the most frequently used plugin in {gr8crm} applications.
+CRM is about managing customers and customer interactions. This plugin provides storage and services for managing
+companies, people and relationships between them. You can use it as a simple address book or as the base of a complex
+customer relationship management system. The plugin is generic but flexible, it has proven support for many different use-cases.
+
+== Domain Model
+
+=== CrmContact
+
+This is the main domain class that stores contacts. It stored companies and individuals in the same domain class.
+A person uses +firstName+ and +lastName+ properties but companies uses only the +name+ property.
+
+|===
+| *Property*     | *Type*  | *Description*
+| firstName      | String  | Given name(s) for person, null for company.
+| lastName       | String  | Family name for person, null for company.
+| name           | String  | firstName + lastName (set in beforeValidate) for individuals and complete name for company
+| number         | String  | Customer number
+| number2        | String  | Extra customer number
+| ssn            | String  | Social Security Number (personnr/orgnr in Sweden)
+| duns           | String  | D&B D-U-N-S(tm) identification number.
+| description    | String  | Description or short notes about the contact
+| title          | String  | Business title
+| email          | String  | Main email address
+| telephone      | String  | Main telephone number
+| mobile         | String  | Cellular phone number
+| fax            | String  | Fax number
+| url            | String  | The contact's web site
+|===
+
+=== CrmContactRelation
+
+This domain class links two contacts together. An example would be to link an employee to it's employer.
+The type of relation is specified by the +type+ property that references a +CrmContactRelationType+.
+
+== CrmContactService
+
++CrmContact getContact(Long id)+
+
+Find a contact based on primary key.
+
++CrmContact findByNumber(String number)+
+
+Find a contact based on customer number.
+
++CrmContact findByName(String name)+
+
+Find a contact based on name.
+
++PagedResultList<CrmContact> list(Map query, Map params)+
+
+List contacts using query by example parameters.
+
++CrmContact createCompany(Map<String, Object> params, boolean save = false)+
+
+Create a new company.
+
++CrmContact createPerson(Map<String, Object> params, boolean save = false)+
+
+Create a new person.
+
++String deleteContact(CrmContact crmContact)+
+
+Delete an existing contact.
+
+== Code Samples
+
+=== Create a company
+
+To create a new company and store it in the database you use +crmContactService.createCompany(Map, boolean)+
+
+[source,groovy]
+----
+def technipelago = crmContactService.createCompany(name: "Technipelago AB", email: "info@technipelago.se",
+                       url: "www.technipelago.se", address: [city: "Djurhamn", country: "SE"], true)
+----
+
+The last parameter is +true+, this means that the company should be persisted (saved) to the database.
+If the last parameter is false or omitted all properties will be set from the specified Map but the company
+will not be persisted. You can later call +save()+ on the instance if you need to perform extra steps before persisting.
+
+=== Create a person
+
+To create a new person and store it in the database you use +crmContactService.createPerson(Map, boolean)+
+
+[source,groovy]
+----
+def goran = crmContactService.createPerson(firstName: "Göran", lastName: "Ehrsson",
+                email: "goran@technipelago.se", title: "Developer", true)
+----
+
+The last parameter is +true+, this means that the person should be persisted (saved) to the database.
+If the last parameter is false or omitted all properties will be set from the specified Map but the person
+will not be persisted. You can later call +save()+ on the instance if you need to perform extra steps before persisting.
+
+== License
+
+{license}
+
+== Source Code
+
+The source code for this plugin is available at {gr8source}
