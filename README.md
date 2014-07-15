@@ -15,24 +15,6 @@ With CRM we mean features like:
 This plugin provides domain classes and services for managing companies,
 individuals or any other type of contacts, and relationships between them.
 
-### Domain Classes
-The plugin provides a simple domain model for contacts.
+### Documentation
 
-**CrmContact** - All contact type are stored here, companies, individuals, organisations, etc.
-
-**CrmContactAddress** - One contact can have many addresses, for example postal, visit, delivery, etc.
-
-**CrmAddressType** - Lookup table that defines the type of a CrmContactAddress instance (postal, visit, delivery, etc.)
-
-**CrmContactRelation** - Link table between two contacts
-
-**CrmContactRelationType** - Lookup table that defines a relation type, for example "emplyee", "chairman", "family", etc.
-
-### Services
-
-**CrmContactService** Main service for creating and managing contact instances
-
-## Related plugins
-
-There is a sub-plugin called *crm-contact-lite* that provides user interface (twitter bootstrap) for
-managing contacts.
+Complete documentation for this plugin can be found at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-contact/crm-contact.html)
