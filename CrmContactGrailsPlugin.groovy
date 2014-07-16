@@ -17,7 +17,7 @@
 import grails.plugins.crm.contact.CrmContact
 
 class CrmContactGrailsPlugin {
-    def groupId = "gr8crm"
+    def groupId = ""
     def version = "2.0.0"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
@@ -26,7 +26,7 @@ class CrmContactGrailsPlugin {
             "grails-app/views/error.gsp",
             "src/groovy/grails/plugins/crm/contact/TestSecurityDelegate.groovy"
     ]
-    def title = "GR8 CRM Contact"
+    def title = "GR8 CRM Contact Management"
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def description = '''
@@ -34,7 +34,7 @@ Provides "headless" contact management features for GR8 CRM.
 This plugin provides no user interface, just domain classes and services for contact management.
 For user interface see the crm-contact-lite plugin which provides a twitter bootstrap user interface.
 '''
-    def documentation = "http://gr8crm.github.io/plugins/crm-contact/crm-contact.html"
+    def documentation = "http://gr8crm.github.io/plugins/crm-contact/"
     def license = "APACHE"
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-contact/issues"]
