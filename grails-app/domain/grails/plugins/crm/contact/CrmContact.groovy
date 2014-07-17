@@ -106,7 +106,10 @@ class CrmContact implements CrmContactInformation {
         //addresses cascade: 'all-delete-orphan'
     }
 
-    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'company', 'person', 'vcard', 'dao', 'relations']
+    static mappedBy = [children:'parent']
+
+    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'company', 'person',
+            'vcard', 'dao', 'relations', 'primaryRelation', 'primaryContact', 'primaryContactAddress']
 
     static searchable = {
         name boost: 1.5
@@ -138,13 +141,16 @@ class CrmContact implements CrmContactInformation {
         }
     }
 
-    transient List<CrmContactRelation> getRelations() {
+    transient List<CrmContactRelation> getRelations(String relationType = null) {
         CrmContactRelation.createCriteria().list() {
             or {
                 eq('a', this)
                 eq('b', this)
             }
             type {
+                if(relationType != null) {
+                    eq('param', relationType)
+                }
                 order 'orderIndex', 'asc'
             }
             a {
@@ -153,7 +159,32 @@ class CrmContact implements CrmContactInformation {
             b {
                 order 'name', 'asc'
             }
+            cache true
         }
+    }
+
+    transient Map getPrimaryRelation() {
+        def rel = CrmContactRelation.createCriteria().get() {
+            eq('a', this)
+            eq('primary', true)
+            cache true
+        }
+        if(rel) {
+            def other = rel.b
+            def result = other.dao
+            result.id = other.id
+            result.relation = rel.type.dao
+            return result
+        }
+        return null
+    }
+
+    transient CrmContact getPrimaryContact() {
+        CrmContactRelation.createCriteria().get() {
+            eq('a', this)
+            eq('primary', true)
+            cache true
+        }?.b
     }
 
     transient String getPreferredPhone() {
@@ -163,10 +194,7 @@ class CrmContact implements CrmContactInformation {
         if (telephone) {
             return telephone
         }
-        if (parent?.telephone) {
-            return parent.telephone
-        }
-        return null
+        primaryContact?.telephone
     }
 
     transient CrmContactAddress getAddress(String type = null) {
@@ -174,16 +202,20 @@ class CrmContact implements CrmContactInformation {
         if(type != null) {
             a = addresses?.find{it.type.param == type}
             if(! a) {
-                a = parent?.getAddress(type)
+                a = primaryContact?.getAddress(type)
             }
         } else {
-            a = getMyAddress() ?: parent?.address
+            a = getMyAddress() ?: primaryContact?.address
         }
         return a
     }
 
     transient CrmContactAddress getMyAddress() {
         (addresses?.find { it.preferred } ?: addresses?.find { it })
+    }
+
+    transient CrmContactAddress getPrimaryContactAddress(CrmAddressType addressType = null) {
+        primaryContact?.addresses?.find { addressType == null || it.type == addressType }
     }
 
     def setAddress(addressBean) {
@@ -208,16 +240,17 @@ class CrmContact implements CrmContactInformation {
 
     @Override
     transient String getCompanyName() {
-        parent?.name
+        primaryContact?.name
     }
 
     @Override
     String getFullName() {
         final StringBuilder s = new StringBuilder()
         s << name
-        if(parent) {
+        def p = getPrimaryContact()
+        if(p) {
             s << ", "
-            s << parent.name
+            s << p.name
         }
         s.toString()
     }
@@ -257,7 +290,7 @@ class CrmContact implements CrmContactInformation {
         s << "VERSION:3.0\n"
         s << "N:${lastName ?: ''};${firstName ?: ''};;;\n"
         s << """FN: ${name ?: ''}\n"""
-        s << "ORG:${company ? name : parent?.name}\n"
+        s << "ORG:${company ? name : primaryContact?.name}\n"
         s << "TITLE:${title ? title.replace(',', '\\,') : ''}\n"
         //s << "PHOTO:http://www.example.com/dir_photos/my_photo.gif\n"
         s << "TEL;TYPE=work,voice,pref:${telephone ?: ''}\n"

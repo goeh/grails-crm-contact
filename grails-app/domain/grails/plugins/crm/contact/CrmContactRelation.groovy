@@ -20,6 +20,7 @@ package grails.plugins.crm.contact
  * Relation between two contacts.
  */
 class CrmContactRelation {
+    boolean primary
     CrmContact a
     CrmContact b
     CrmContactRelationType type
@@ -28,6 +29,10 @@ class CrmContactRelation {
     static constraints = {
         type(unique: ['a', 'b'])
         description(maxSize: 2000, nullable: true, widget: 'textarea')
+    }
+
+    static mapping = {
+        primary column: 'is_primary'
     }
 
     String toString() {
@@ -44,5 +49,12 @@ class CrmContactRelation {
             return a
         }
         return null
+    }
+
+    boolean isPrimaryFor(CrmContact origin) {
+        if(a == null || origin == null) {
+            return false
+        }
+        primary == true && origin.id == a.id
     }
 }

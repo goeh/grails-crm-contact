@@ -395,20 +395,84 @@ class CrmContactService {
         return m
     }
 
-    CrmContactRelation addRelation(CrmContact a, CrmContact b, String typeParam, String description = null) {
-        def type = getRelationType(typeParam)
-        if (!type) {
-            throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeParam]")
+    CrmContactRelation addRelation(CrmContact a, CrmContact b, String typeParam, boolean primary, String description = null) {
+        if(typeParam == null) {
+            typeParam = CrmContactRelationType.createCriteria().get() {
+                projections {
+                    property 'param'
+                }
+                order 'orderIndex', 'asc'
+                maxResults 1
+            }
         }
-        def relation = CrmContactRelation.createCriteria().get() {
-            eq('a', a)
-            eq('b', b)
-            eq('type', type)
-        }
+        def relation = getRelation(a, b, typeParam)
         if (!relation) {
-            relation = new CrmContactRelation(a: a, b: b, type: type, description: description).save(failOnError: true)
+            def type = getRelationType(typeParam)
+            if (!type) {
+                throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeParam]")
+            }
+            relation = new CrmContactRelation(a: a, b: b, type: type, primary: primary, description: description).save(flush: true)
         }
-        return relation
+        if (primary && !relation.hasErrors()) {
+            setPrimaryRelation(relation)
+        }
+        relation
+    }
+
+    /**
+     * Set a relation as primary relation.
+     *
+     * @param relation
+     * @return true if primary relation on the contact was changed
+     */
+    boolean setPrimaryRelation(CrmContactRelation relation) {
+        boolean rval = false
+        relation.primary = true
+        def existing = CrmContactRelation.createCriteria().list() {
+            eq('a', relation.a)
+            eq('primary', true)
+            ne('id', relation.id)
+        }
+        for (rel in existing) {
+            if(rel.primary) {
+                rel.primary = false
+                rval = true
+            }
+        }
+        rval
+    }
+
+    CrmContactRelation getRelation(CrmContact a, CrmContact b, String typeParam = null) {
+        CrmContactRelation.createCriteria().get() {
+            or {
+                and {
+                    eq('a', a)
+                    eq('b', b)
+                }
+                and {
+                    eq('a', b)
+                    eq('b', a)
+                }
+            }
+            if (typeParam) {
+                type {
+                    eq('param', typeParam)
+                }
+            }
+        }
+    }
+
+    List<CrmContactRelationType> listRelationType(String name, Map params = [:]) {
+        CrmContactRelationType.createCriteria().list(params) {
+            eq('tenantId', TenantUtils.tenant)
+            if (name) {
+                or {
+                    ilike('name', SearchUtils.wildcard(name))
+                    eq('param', name)
+                }
+            }
+            order 'orderIndex', 'asc'
+        }
     }
 
     CrmContactCategoryType getCategoryType(String param) {
