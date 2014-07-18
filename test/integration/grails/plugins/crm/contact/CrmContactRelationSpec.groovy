@@ -24,8 +24,8 @@ class CrmContactRelationSpec extends grails.plugin.spock.IntegrationSpec {
         def employee3 = crmContactService.createPerson(firstName: "Employee", lastName: "Three", true)
 
         when:
-        crmContactService.addRelation(company, employee1, "test")
-        crmContactService.addRelation(company, employee2, "test")
+        crmContactService.addRelation(employee1, company, "test", true)
+        crmContactService.addRelation(employee2, company, "test", true)
 
         then:
         company.getRelations().size() == 2

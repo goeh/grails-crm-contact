@@ -191,10 +191,50 @@ class CrmContactService {
         return false
     }
 
+    private Set<Long> findRelatedIds(String relatedName) {
+        CrmContactRelation.createCriteria().list() {
+            projections {
+                a {
+                    property('id')
+                }
+                b {
+                    property('id')
+                }
+            }
+            or {
+                a {
+                    ilike('name', SearchUtils.wildcard(relatedName))
+                }
+                b {
+                    ilike('name', SearchUtils.wildcard(relatedName))
+                }
+            }
+        }.flatten() as Set
+
+    }
+
+    private static final Set<Long> NO_RESULT = [0L] as Set // A query value that will find nothing
+
     def contactCriteria = { query, count, sort ->
-        def tagged
+        Set<Long> ids = [] as Set
         if (query.tags) {
-            tagged = crmTagService.findAllIdByTag(CrmContact, query.tags) ?: [0L]
+            def tagged = crmTagService.findAllIdByTag(CrmContact, query.tags)
+            if(tagged) {
+                ids.addAll(tagged)
+            } else {
+                ids = NO_RESULT
+            }
+        }
+
+        if(query.related) {
+            def related = findRelatedIds(query.related)
+            if(related) {
+                if(ids != NO_RESULT) {
+                    ids.addAll(related)
+                }
+            } else {
+                ids = NO_RESULT
+            }
         }
 
         projections {
@@ -207,8 +247,8 @@ class CrmContactService {
         }
 
         eq('tenantId', TenantUtils.tenant)
-        if (tagged) {
-            inList('id', tagged)
+        if (ids) {
+            inList('id', ids)
         }
         if (query.guid) {
             eq('guid', query.guid)
@@ -282,6 +322,7 @@ class CrmContactService {
                 }
             }
         }
+
         if (query.parent) {
             parent {
                 if (query.parent instanceof Number) {
@@ -395,22 +436,23 @@ class CrmContactService {
         return m
     }
 
-    CrmContactRelation addRelation(CrmContact a, CrmContact b, String typeParam, boolean primary, String description = null) {
-        if(typeParam == null) {
-            typeParam = CrmContactRelationType.createCriteria().get() {
-                projections {
-                    property 'param'
-                }
+    CrmContactRelation addRelation(CrmContact a, CrmContact b, Object typeOrParam, boolean primary, String description = null) {
+        CrmContactRelationType type
+        if(typeOrParam == null) {
+            type = CrmContactRelationType.createCriteria().get() {
                 order 'orderIndex', 'asc'
                 maxResults 1
             }
-        }
-        def relation = getRelation(a, b, typeParam)
-        if (!relation) {
-            def type = getRelationType(typeParam)
+        } else if(typeOrParam instanceof CrmContactRelationType) {
+            type = typeOrParam
+        } else {
+            type = getRelationType(typeOrParam.toString())
             if (!type) {
                 throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeParam]")
             }
+        }
+        def relation = getRelation(a, b, type)
+        if (!relation) {
             relation = new CrmContactRelation(a: a, b: b, type: type, primary: primary, description: description).save(flush: true)
         }
         if (primary && !relation.hasErrors()) {
@@ -442,7 +484,18 @@ class CrmContactService {
         rval
     }
 
-    CrmContactRelation getRelation(CrmContact a, CrmContact b, String typeParam = null) {
+    CrmContactRelation getRelation(CrmContact a, CrmContact b, Object typeOrParam = null) {
+        CrmContactRelationType type
+        if(typeOrParam != null) {
+            if(typeOrParam instanceof CrmContactRelationType) {
+                type = typeOrParam
+            } else {
+                type = getRelationType(typeOrParam.toString())
+                if (!type) {
+                    throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeOrParam]")
+                }
+            }
+        }
         CrmContactRelation.createCriteria().get() {
             or {
                 and {
@@ -454,10 +507,8 @@ class CrmContactService {
                     eq('b', a)
                 }
             }
-            if (typeParam) {
-                type {
-                    eq('param', typeParam)
-                }
+            if (type) {
+                eq('type', type)
             }
         }
     }

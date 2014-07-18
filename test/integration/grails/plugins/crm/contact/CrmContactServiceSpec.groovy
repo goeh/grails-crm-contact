@@ -6,12 +6,17 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
 
     def crmContactService
 
-    @Shared typePostal
-    @Shared typeVisit
+    @Shared
+            typePostal
+    @Shared
+            typeVisit
+    @Shared
+            employer
 
     def setup() {
         typePostal = crmContactService.createAddressType(name: "Postal Address", param: "postal").save(failOnError: true, flush: true)
         typeVisit = crmContactService.createAddressType(name: "Visiting Address", param: "visit").save(failOnError: true, flush: true)
+        employer = crmContactService.createRelationType(name: "Employer", param: "employer", true)
     }
 
     def "create a new company with two employees"() {
@@ -28,17 +33,12 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         company.address.toString() == "Test Street 1, P.O Box 1234, 12345 Test City"
 
         when:
-        def person1 = crmContactService.createPerson(firstName: "Joe", lastName: "Average", parent: company)
-        def person2 = crmContactService.createPerson(firstName: "Jane", lastName: "Average", parent: company,
-                address: [type: typePostal, address1: "Test Street 10", address2: "P.O Box 1234", postalCode: "12345", city: "Test City"])
-
-        then:
-        !person1.hasErrors()
-        !person2.hasErrors()
-
-        when:
-        person1.save(failOnError: true, flush: true)
-        person2.save(failOnError: true, flush: true)
+        def person1 = crmContactService.createPerson(firstName: "Joe", lastName: "Average", true)
+        def person2 = crmContactService.createPerson(firstName: "Jane", lastName: "Average",
+                address: [type: typePostal, address1: "Test Street 10",
+                        address2: "P.O Box 1234", postalCode: "12345", city: "Test City"], true)
+        crmContactService.addRelation(person1, company, employer, true)
+        crmContactService.addRelation(person2, company, employer, true)
 
         then:
         person1.addresses == null || person1.addresses.isEmpty() // No own address
@@ -54,10 +54,30 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         company.refresh()
 
         then:
-        company.children.size() == 2
-        company.children.findAll { it.firstName == "Joe" }.size() == 1
-        company.children.findAll { it.firstName == "Jane" }.size() == 1
-        company.children.findAll { it.lastName == "Average" }.size() == 2
+        company.children.size() == 0
+        person1.parent == null
+        person2.parent == null
+        company.relations.findAll { it.getRelated(company).firstName == "Joe" }.size() == 1
+        company.relations.findAll { it.getRelated(company).firstName == "Jane" }.size() == 1
+        company.relations.findAll { it.getRelated(company).lastName == "Average" }.size() == 2
+
+        when:
+        def result = crmContactService.list([related: 'Test Company', person: true], [:])
+
+        then:
+        result.size() == 2
+
+        when:
+        result = crmContactService.list([related: 'Test Company', person: true, name: 'Joe'], [:])
+
+        then:
+        result.size() == 1
+
+        when:
+        result = crmContactService.list([related: 'No Company', person: true], [:])
+
+        then:
+        result.size() == 0
     }
 
     def "create a company with two different addresses (postal and visit)"() {

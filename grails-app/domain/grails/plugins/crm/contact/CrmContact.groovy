@@ -142,6 +142,9 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient List<CrmContactRelation> getRelations(String relationType = null) {
+        if(!ident()) {
+            return null
+        }
         CrmContactRelation.createCriteria().list() {
             or {
                 eq('a', this)
@@ -164,6 +167,9 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient Map getPrimaryRelation() {
+        if(!ident()) {
+            return null
+        }
         def rel = CrmContactRelation.createCriteria().get() {
             eq('a', this)
             eq('primary', true)
@@ -180,6 +186,9 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient CrmContact getPrimaryContact() {
+        if(!ident()) {
+            return null
+        }
         CrmContactRelation.createCriteria().get() {
             eq('a', this)
             eq('primary', true)

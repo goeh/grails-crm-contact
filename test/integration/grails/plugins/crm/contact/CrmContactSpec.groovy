@@ -98,8 +98,9 @@ class CrmContactSpec extends grails.plugin.spock.IntegrationSpec {
     def "test fullName"() {
         when:
         def company = new CrmContact(name: 'Groovy Corporation').save(failOnError: true)
-        def person = new CrmContact(name: 'George Groovy', parent: company).save(failOnError: true)
-
+        def person = new CrmContact(name: 'George Groovy').save(failOnError: true)
+        def employer = new CrmContactRelationType(name: "Employer", param: "employer").save(failOnError: true)
+        new CrmContactRelation(a: person, b: company, type: employer, primary: true).save(failOnError: true)
         then:
         company.fullName == 'Groovy Corporation'
         person.fullName == 'George Groovy, Groovy Corporation'
