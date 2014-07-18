@@ -30,9 +30,9 @@ class CrmContactGrailsPlugin {
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def description = '''
-Provides "headless" contact management features for GR8 CRM.
-This plugin provides no user interface, just domain classes and services for contact management.
-For user interface see the crm-contact-lite plugin which provides a twitter bootstrap user interface.
+Provides "headless" Contact Management features for GR8 CRM applications.
+This plugin provides no user interface, just domain classes and services for Contact Management.
+For user interface see the crm-contact-ui plugin which provides a Twitter Bootstrap user interface.
 '''
     def documentation = "http://gr8crm.github.io/plugins/crm-contact/"
     def license = "APACHE"
