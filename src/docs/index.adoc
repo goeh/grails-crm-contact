@@ -37,7 +37,14 @@ CRM is about managing customers and customer interactions. This plugin provides 
 companies, people and relationships between them. You can use it as a simple address book or as the base of a complex
 customer relationship management system. The plugin is generic but flexible, it has proven support for many different use-cases.
 
+Note that this plugin does not contain any user interface components. This plugin contains domain classes and services only.
+The plugin http://gr8crm.github.io/plugins/crm-contact-ui/[crm-contact-ui] provides a Twitter Bootstrap based user interface
+for managing contacts and relations. +crm-contact-ui+ depends on +crm-contact+ so you only need to include +crm-contact-ui+
+in your BuildConfig.groovy if you want end-user contact management features.
+
 == Domain Model
+
+image::domain-model.png[Contact Management Domain Model]
 
 === CrmContact
 
@@ -104,9 +111,10 @@ Delete an existing contact.
 To create a new company and store it in the database you use +crmContactService.createCompany(Map, boolean)+
 
 [source,groovy]
+.CreateCompanyExample.groovy
 ----
 def technipelago = crmContactService.createCompany(name: "Technipelago AB", email: "info@technipelago.se",
-                       url: "www.technipelago.se", address: [city: "Djurhamn", country: "SE"], true)
+                       url: "www.technipelago.se", address: [postalCode: "13973", city: "Djurhamn", country: "Sweden"], true)
 ----
 
 The last parameter is +true+, this means that the company should be persisted (saved) to the database.
@@ -118,6 +126,7 @@ will not be persisted. You can later call +save()+ on the instance if you need t
 To create a new person and store it in the database you use +crmContactService.createPerson(Map, boolean)+
 
 [source,groovy]
+.CreatePersonExample.groovy
 ----
 def goran = crmContactService.createPerson(firstName: "Göran", lastName: "Ehrsson",
                 email: "goran@technipelago.se", title: "Developer", true)
@@ -126,6 +135,45 @@ def goran = crmContactService.createPerson(firstName: "Göran", lastName: "Ehrss
 The last parameter is +true+, this means that the person should be persisted (saved) to the database.
 If the last parameter is false or omitted all properties will be set from the specified Map but the person
 will not be persisted. You can later call +save()+ on the instance if you need to perform extra steps before persisting.
+
+=== Relations
+
+Relations are used to connect contacts together. To connect an employee with it's employer you create a +CrmContactRelation+
+between them. The domain class +CrmContactRelation+ has a property called +primary+ that specifies what relation is the primary
+relation for that contact. A contact can have many relations but only one primary relation. A good example is the
+employee<-->employer relation, were the relation from the person to it's employer (company) has the primary property set to true.
+This affects things like address management and display of contact information.
+
+[source,groovy]
+.CreateRelationExample.groovy
+----
+def relation = crmContactService.addRelation(goran, technipelago, 'employer', true)
+----
+
+=== Search Contacts
+
+To query the database for contact you can use +crmContactService.list(Map, Map)+. This first parameter accepts
+a map of query values. The second parameter is a map with pagination parameters (offset, max, sort, order).
+
+[source,groovy]
+.SearchContactsExample.groovy
+----
+def result
+result = crmContactService.list([name: "Göran"], [:]) // <1>
+println result
+[Göran Ehrsson]
+
+result = crmContactService.list([name: "Tech"], [:]) // <2>
+println result
+[Technipelago AB]
+
+result = crmContactService.list([person: true, related: "Tech"], [:]) // <3>
+println result
+[Göran Ehrsson]
+----
+<1> Find contacts who's name begins with "Göran"
+<2> Find contacts who's name begins with "Tech"
+<3> Find contacts of type person that have a relation to a contact who's name begins with "Tech"
 
 == License
 
