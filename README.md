@@ -17,4 +17,4 @@ individuals or any other type of contacts, and relationships between them.
 
 ### Documentation
 
-Complete documentation for this plugin can be found at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-contact/crm-contact.html)
+Complete documentation for this plugin can be found at [gr8crm.github.io](http://gr8crm.github.io/plugins/crm-contact/)
