@@ -48,7 +48,7 @@ image::domain-model.png[Contact Management Domain Model]
 
 === CrmContact
 
-This is the main domain class that stores contacts. It stored companies and individuals in the same domain class.
+This is the main domain class that store contacts. It stored companies and individuals in the same domain class.
 A person uses +firstName+ and +lastName+ properties but companies uses only the +name+ property.
 
 |===
@@ -59,7 +59,7 @@ A person uses +firstName+ and +lastName+ properties but companies uses only the 
 | number         | String  | Customer number
 | number2        | String  | Extra customer number
 | ssn            | String  | Social Security Number (personnr/orgnr in Sweden)
-| duns           | String  | D&B D-U-N-S(tm) identification number.
+| duns           | String  | D&B D-U-N-S(TM) identification number.
 | description    | String  | Description or short notes about the contact
 | title          | String  | Business title
 | email          | String  | Main email address
