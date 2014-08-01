@@ -51,8 +51,9 @@ image::domain-model.png[Contact Management Domain Model]
 This is the main domain class that store contacts. It stored companies and individuals in the same domain class.
 A person uses +firstName+ and +lastName+ properties but companies uses only the +name+ property.
 
+[options="header"]
 |===
-| *Property*     | *Type*  | *Description*
+| Property       | Type    | Description
 | firstName      | String  | Given name(s) for person, null for company.
 | lastName       | String  | Family name for person, null for company.
 | name           | String  | firstName + lastName (set in beforeValidate) for individuals and complete name for company
