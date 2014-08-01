@@ -190,4 +190,37 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         crmContactService.list([tags: "java,scala"], [:]).size() == 4
         crmContactService.list([tags: "groovy&grails"], [:]).size() == 3
     }
+
+    def "find contacts by parent"() {
+        when:
+        def corp = new CrmContact(name: "ACME Corporation").save(failOnError: true)
+        def company1 = new CrmContact(name: "ACME Supplies Inc.", parent: corp).save(failOnError: true)
+        def company2 = new CrmContact(name: "ACME Sales Inc.", parent: corp).save(failOnError: true)
+
+        then:
+        crmContactService.list([parent: "ACME Corporation"], [:]).size() == 2
+        crmContactService.list([parent: corp.id], [:]).size() == 2
+    }
+
+    def "find contacts by related"() {
+        given:
+        def family = crmContactService.createRelationType(name: "Family", true)
+        def father = new CrmContact(firstName: "Father", lastName: "Grails").save(failOnError: true)
+        def mother = new CrmContact(firstName: "Mother", lastName: "Grails").save(failOnError: true)
+        def daughter = new CrmContact(firstName: "Daughter", lastName: "Grails").save(failOnError: true)
+        def son = new CrmContact(firstName: "Son", lastName: "Grails").save(failOnError: true)
+        def dog = new CrmContact(firstName: "Dog", lastName: "Grails").save(failOnError: true)
+
+        when:
+        crmContactService.addRelation(son, father, family, true)
+        crmContactService.addRelation(son, mother, family, false)
+        crmContactService.addRelation(daughter, father, family, true)
+        crmContactService.addRelation(daughter, mother, family, false)
+        crmContactService.addRelation(mother, father, family, false)
+
+        then:
+        crmContactService.list().size() == 5
+        crmContactService.list([related: "Father Grails"], [:]).size() == 3
+        crmContactService.list([related: father.id], [:]).size() == 3
+    }
 }

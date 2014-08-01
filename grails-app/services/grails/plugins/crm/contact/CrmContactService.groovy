@@ -191,26 +191,49 @@ class CrmContactService {
         return false
     }
 
-    private Set<Long> findRelatedIds(String relatedName) {
-        CrmContactRelation.createCriteria().list() {
+    private Set<Long> findRelatedIds(Object related) {
+        def resultA = CrmContactRelation.createCriteria().list() {
             projections {
                 a {
                     property('id')
                 }
+            }
+            if(related instanceof Number) {
+                or {
+                    b {
+                        eq('id', ((Number)related).longValue())
+                    }
+                }
+            } else {
+                or {
+                    b {
+                        ilike('name', SearchUtils.wildcard(related))
+                    }
+                }
+            }
+        }.flatten() as Set
+        def resultB = CrmContactRelation.createCriteria().list() {
+            projections {
                 b {
                     property('id')
                 }
             }
-            or {
-                a {
-                    ilike('name', SearchUtils.wildcard(relatedName))
+            if(related instanceof Number) {
+                or {
+                    a {
+                        eq('id', ((Number)related).longValue())
+                    }
                 }
-                b {
-                    ilike('name', SearchUtils.wildcard(relatedName))
+            } else {
+                or {
+                    a {
+                        ilike('name', SearchUtils.wildcard(related))
+                    }
                 }
             }
         }.flatten() as Set
 
+        resultA + resultB
     }
 
     private static final Set<Long> NO_RESULT = [0L] as Set // A query value that will find nothing
@@ -326,7 +349,7 @@ class CrmContactService {
         if (query.parent) {
             parent {
                 if (query.parent instanceof Number) {
-                    eq('id', query.parent)
+                    eq('id', ((Number)query.parent).longValue())
                 } else {
                     ilike('name', SearchUtils.wildcard(query.parent.toString()))
                 }
