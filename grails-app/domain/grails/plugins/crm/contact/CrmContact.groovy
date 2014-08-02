@@ -108,7 +108,7 @@ class CrmContact implements CrmContactInformation {
 
     static mappedBy = [children:'parent']
 
-    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'company', 'person',
+    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'companyId', 'company', 'person',
             'vcard', 'dao', 'relations', 'primaryRelation', 'primaryContact', 'primaryContactAddress']
 
     static searchable = {
@@ -250,6 +250,11 @@ class CrmContact implements CrmContactInformation {
     @Override
     transient String getCompanyName() {
         primaryContact?.name
+    }
+
+    @Override
+    transient Long getCompanyId() {
+        primaryContact?.id
     }
 
     @Override

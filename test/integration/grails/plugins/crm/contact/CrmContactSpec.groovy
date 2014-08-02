@@ -1,5 +1,7 @@
 package grails.plugins.crm.contact
 
+import grails.plugins.crm.core.CrmContactInformation
+
 /**
  * Test CrmContact domain class.
  */
@@ -106,4 +108,18 @@ class CrmContactSpec extends grails.plugin.spock.IntegrationSpec {
         person.fullName == 'George Groovy, Groovy Corporation'
     }
 
+    def "test CrmContactInformation interface"() {
+        when:
+        CrmContactInformation company = new CrmContact(name: 'Groovy Corporation').save(failOnError: true)
+        CrmContactInformation person = new CrmContact(name: 'George Groovy').save(failOnError: true)
+        def employer = new CrmContactRelationType(name: "Employer", param: "employer").save(failOnError: true)
+        new CrmContactRelation(a: person, b: company, type: employer, primary: true).save(failOnError: true)
+
+        then:
+        person instanceof CrmContactInformation
+        company instanceof CrmContactInformation
+        person.getCompanyId() != null
+        person.companyId == company.id
+        company.getCompanyId() == null
+    }
 }
