@@ -176,6 +176,14 @@ println result
 <2> Find contacts who's name begins with "Tech"
 <3> Find contacts of type person that have a relation to a contact who's name begins with "Tech"
 
+== Changes
+
+2.0.2:: Changes due to +CrmContactInformation+ interface changes in plugin link:/plugins/crm-core/index.html#crm-changes[crm-core] version 2.0.1. +
+New method +Long CrmContact#getCompanyId()+.
+2.0.1:: Fixed bug in +CrmContactService#list(Map, Map)+ where query on +related+ returned ID:s for the related contact, it should return self side only. +
+Added support for passing key +related+ to +CrmContactService#createPerson(Map, boolean)+ to automatically create a relation to another contact.
+2.0.0:: First public release
+
 == License
 
 {license}

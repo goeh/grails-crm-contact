@@ -18,7 +18,7 @@ import grails.plugins.crm.contact.CrmContact
 
 class CrmContactGrailsPlugin {
     def groupId = ""
-    def version = "2.0.2-SNAPSHOT"
+    def version = "2.0.2"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore', 'selection', 'crmTags']
@@ -26,7 +26,7 @@ class CrmContactGrailsPlugin {
             "grails-app/views/error.gsp",
             "src/groovy/grails/plugins/crm/contact/TestSecurityDelegate.groovy"
     ]
-    def title = "GR8 CRM Contact Management"
+    def title = "GR8 CRM Contact Management Services"
     def author = "Goran Ehrsson"
     def authorEmail = "goran@technipelago.se"
     def description = '''
