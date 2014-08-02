@@ -744,7 +744,14 @@ class CrmContactService {
         if (save) {
             setNumberUnique(crmContact)
             if (!crmContact.hasErrors()) {
-                crmContact.save()
+                def related = params.related
+                if(crmContact.save() && related) {
+                    if(related instanceof List) {
+                        addRelation(crmContact, related[0], related[1], true)
+                    } else {
+                        addRelation(crmContact, related, null, true)
+                    }
+                }
             }
         } else {
             crmContact.validate()

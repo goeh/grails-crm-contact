@@ -34,11 +34,11 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
 
         when:
         def person1 = crmContactService.createPerson(firstName: "Joe", lastName: "Average", true)
-        def person2 = crmContactService.createPerson(firstName: "Jane", lastName: "Average",
-                address: [type: typePostal, address1: "Test Street 10",
-                        address2: "P.O Box 1234", postalCode: "12345", city: "Test City"], true)
+        def person2 = crmContactService.createPerson(firstName: "Jane", lastName: "Average", related: company,
+                address: [type    : typePostal, address1: "Test Street 10",
+                          address2: "P.O Box 1234", postalCode: "12345", city: "Test City"], true)
+        def person3 = crmContactService.createPerson(firstName: "Jason", lastName: "Average", related: [company, employer], true)
         crmContactService.addRelation(person1, company, employer, true)
-        crmContactService.addRelation(person2, company, employer, true)
 
         then:
         person1.addresses == null || person1.addresses.isEmpty() // No own address
@@ -50,6 +50,10 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         person2.address.address1 == "Test Street 10"
         person2.address.preferred
 
+        person3.addresses == null || person3.addresses.isEmpty() // No own address
+        person3.address.toString() == "Test Street 1, P.O Box 1234, 12345 Test City" // Company address
+        person3.address.preferred
+
         when:
         company.refresh()
 
@@ -57,15 +61,17 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         company.children.size() == 0
         person1.parent == null
         person2.parent == null
+        person3.parent == null
         company.relations.findAll { it.getRelated(company).firstName == "Joe" }.size() == 1
         company.relations.findAll { it.getRelated(company).firstName == "Jane" }.size() == 1
-        company.relations.findAll { it.getRelated(company).lastName == "Average" }.size() == 2
+        company.relations.findAll { it.getRelated(company).firstName == "Jason" }.size() == 1
+        company.relations.findAll { it.getRelated(company).lastName == "Average" }.size() == 3
 
         when:
         def result = crmContactService.list([related: 'Test Company', person: true], [:])
 
         then:
-        result.size() == 2
+        result.size() == 3
 
         when:
         result = crmContactService.list([related: 'Test Company', person: true, name: 'Joe'], [:])
@@ -85,7 +91,7 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         when: "create a company with two addresses"
         def company = crmContactService.createCompany(name: "Federal Company",
                 addresses: [[type: typePostal, address1: "Test Street 1", postalCode: "11111", city: "City 1"],
-                        [type: "visit", address1: "Test Street 2", postalCode: "22222", city: "City 2"]],
+                            [type: "visit", address1: "Test Street 2", postalCode: "22222", city: "City 2"]],
                 true)
 
         then: "the company has two addresses"
