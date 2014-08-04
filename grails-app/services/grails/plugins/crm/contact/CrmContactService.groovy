@@ -60,6 +60,10 @@ class CrmContactService {
             // Invoice address type
             s = messageSource.getMessage("crmAddressType.name.invoice", null, "Invoice Address", locale)
             createAddressType(name: s, param: "invoice").save(failOnError: true)
+
+            // Relation type 'company'
+            s = messageSource.getMessage("crmContactRelationType.name.company", null, "Company", locale)
+            createRelationType(name: s, param: "company").save(failOnError: true)
         }
     }
 
@@ -476,7 +480,8 @@ class CrmContactService {
         }
         def relation = getRelation(a, b, type)
         if (!relation) {
-            relation = new CrmContactRelation(a: a, b: b, type: type, primary: primary, description: description).save(flush: true)
+            relation = new CrmContactRelation(a: a, b: b, type: type, primary: primary, description: description)
+            relation.save(flush: true)
         }
         if (primary && !relation.hasErrors()) {
             setPrimaryRelation(relation)
