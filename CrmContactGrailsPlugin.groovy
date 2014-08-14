@@ -40,6 +40,37 @@ For user interface see the crm-contact-ui plugin which provides a Twitter Bootst
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-contact/issues"]
     def scm = [url: "https://github.com/goeh/grails-crm-contact"]
 
+    def features = {
+        crmContact {
+            description "Contact Management"
+            link controller: 'crmContact'
+            permissions {
+                guest "crmContact:index,list,show,createFavorite,deleteFavorite,clearQuery,qrcode,autocompleteTitle,autocompleteCategoryType,autocompleteTags", "qrcode:*"
+                partner "crmContact:index,list,show,createFavorite,deleteFavorite,clearQuery,qrcode,autocompleteTitle,autocompleteCategoryType,autocompleteTags", "qrcode:*"
+                user "crmContact:*", "qrcode:*"
+                admin "crmContact,crmAddressType,crmContactCategoryType,crmContactRelationType:*", "qrcode:*"
+            }
+            statistics {tenant ->
+                def total = CrmContact.countByTenantId(tenant)
+                def updated = CrmContact.countByTenantIdAndLastUpdatedGreaterThan(tenant, new Date() - 31)
+                def usage
+                if (total > 0) {
+                    def tmp = updated / total
+                    if (tmp < 0.1) {
+                        usage = 'low'
+                    } else if (tmp < 0.3) {
+                        usage = 'medium'
+                    } else {
+                        usage = 'high'
+                    }
+                } else {
+                    usage = 'none'
+                }
+                return [usage: usage, objects: total]
+            }
+        }
+    }
+
     def doWithApplicationContext = { applicationContext ->
 
         // TODO Move helper methods to a utility class, or better to GormSelection.groovy?
