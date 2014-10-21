@@ -18,6 +18,7 @@ package grails.plugins.crm.contact
 import grails.plugins.crm.core.DateUtils
 import grails.plugins.crm.core.TenantUtils
 import grails.plugins.crm.core.PagedResultList
+import grails.plugins.crm.core.Pair
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
 import grails.plugins.crm.core.SearchUtils
@@ -819,6 +820,48 @@ class CrmContactService {
             }
         }
         return address
+    }
+
+    Pair<CrmContact, CrmContact> fixCustomerParams(Map params) {
+        def company
+        def contact
+        if (params.customer instanceof CrmContact) {
+            company = params.customer
+        } else if (params['customer.id']) {
+            company = getContact(Long.valueOf(params['customer.id'].toString()))
+        }
+        if (params.contact instanceof CrmContact) {
+            contact = params.contact
+        } else if (params['contact.id']) {
+            contact = getContact(Long.valueOf(params['contact.id'].toString()))
+        }
+
+        if (company == null) {
+            def primaryContact = contact?.primaryContact
+            if (primaryContact) {
+                // Company is not specified but the selected person is associated with a company (primaryContact)
+                // Set params as if the user had selected the person's primary contact in the company field.
+                company = primaryContact
+                params['customer.name'] = company.name
+                params['customer.id'] = company.id
+            }
+        }
+
+        // A company name is specified but it's not an existing company.
+        // Create a new company.
+        if (params['customer.name'] && !company) {
+            company = createCompany(name: params['customer.name']).save(failOnError: true, flush: true)
+            params['customer.id'] = company.id
+        }
+
+        // A person name is specified but it's not an existing person.
+        // Create a new person.
+        if (params['contact.name'] && !contact) {
+            contact = createPerson([firstName: params['contact.name'], related: company]).save(failOnError: true, flush: true)
+            params['contact.id'] = contact.id
+        }
+
+        new Pair(company, contact)
     }
 
     CrmContact save(Map params) {
