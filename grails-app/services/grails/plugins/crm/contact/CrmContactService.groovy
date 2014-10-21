@@ -822,6 +822,14 @@ class CrmContactService {
         return address
     }
 
+    /**
+     * Given a Map with customer.id, customer.name, contact.id and contact.name
+     * create CrmContact instances using xxxxx.name if xxxxx.id is null
+     * The created person (contact.name) will be related to the company (customer.name).
+     *
+     * @param params Map with parameters
+     * @return a Pair with two CrmContact instances, company and employee.
+     */
     Pair<CrmContact, CrmContact> fixCustomerParams(Map params) {
         def company
         def contact
