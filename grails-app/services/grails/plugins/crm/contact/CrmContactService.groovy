@@ -246,12 +246,26 @@ class CrmContactService {
     def contactCriteria = { query, count, sort ->
         Set<Long> ids = [] as Set
         if (query.tags) {
-            def tagged = crmTagService.findAllIdByTag(CrmContact, query.tags)
-            if(tagged) {
-                ids.addAll(tagged)
+            def tagged
+            if (!(query.tags instanceof String)) {
+                for (tagNameAndValue in query.tags) {
+                    tagged = crmTagService.findAllIdByTag(CrmContact, *(tagNameAndValue.split(':')))
+                    if (tagged) {
+                        ids.addAll(tagged)
+                    }
+                }
+                if (ids.size() == 0) {
+                    ids = NO_RESULT
+                }
             } else {
-                ids = NO_RESULT
+                tagged = crmTagService.findAllIdByTag(CrmContact, *(query.tags.split(':')))
+                if(tagged) {
+                    ids.addAll(tagged)
+                } else {
+                    ids = NO_RESULT
+                }
             }
+
         }
 
         if(query.related) {
