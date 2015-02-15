@@ -122,4 +122,21 @@ class CrmContactSpec extends grails.plugin.spock.IntegrationSpec {
         person.companyId == company.id
         company.getCompanyId() == null
     }
+
+    def "lastName then firstName comparator"() {
+        given:
+        def list = []
+        list << new CrmContact(firstName: 'Joe', lastName: "Zuckerberg")
+        list << new CrmContact(firstName: 'Cameron', lastName: "Dougnut")
+        list << new CrmContact(firstName: 'Sven', lastName: "Frost")
+        list << new CrmContact(firstName: 'Marie', lastName: "Alda")
+        list << new CrmContact(firstName: 'David', lastName: "Alda")
+        list << new CrmContact(firstName: 'Bill', lastName: "Clingon")
+
+        when:
+        def sorted = list.sort(CrmContact.lastNameFirstNameComparator)*.firstName
+
+        then:
+        sorted == ["David", "Marie", "Bill", "Cameron", "Sven", "Joe"]
+    }
 }
