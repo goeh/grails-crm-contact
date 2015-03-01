@@ -2,7 +2,7 @@ package grails.plugins.crm.contact
 
 import spock.lang.Shared
 
-class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
+class CrmContactServiceSpec extends grails.test.spock.IntegrationSpec {
 
     def crmContactService
 

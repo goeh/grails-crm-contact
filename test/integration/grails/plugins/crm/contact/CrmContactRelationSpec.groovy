@@ -5,7 +5,7 @@ import spock.lang.Shared
 /**
  * Test relations between contacts.
  */
-class CrmContactRelationSpec extends grails.plugin.spock.IntegrationSpec {
+class CrmContactRelationSpec extends grails.test.spock.IntegrationSpec {
 
     def crmContactService
 

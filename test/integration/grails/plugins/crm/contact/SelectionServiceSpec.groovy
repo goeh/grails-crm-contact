@@ -2,7 +2,7 @@ package grails.plugins.crm.contact
 
 import grails.plugins.crm.core.TenantUtils
 
-public class SelectionServiceSpec extends grails.plugin.spock.IntegrationSpec {
+public class SelectionServiceSpec extends grails.test.spock.IntegrationSpec {
 
     def selectionService
     def gormSelection

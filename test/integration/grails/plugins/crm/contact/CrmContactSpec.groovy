@@ -5,7 +5,7 @@ import grails.plugins.crm.core.CrmContactInformation
 /**
  * Test CrmContact domain class.
  */
-class CrmContactSpec extends grails.plugin.spock.IntegrationSpec {
+class CrmContactSpec extends grails.test.spock.IntegrationSpec {
 
     def grailsApplication
 
@@ -134,9 +134,9 @@ class CrmContactSpec extends grails.plugin.spock.IntegrationSpec {
         list << new CrmContact(firstName: 'Bill', lastName: "Clingon")
 
         when:
-        def sorted = list.sort(CrmContact.lastNameFirstNameComparator)*.firstName
+        Collections.sort(list, CrmContact.lastNameFirstNameComparator)
 
         then:
-        sorted == ["David", "Marie", "Bill", "Cameron", "Sven", "Joe"]
+        list*.firstName == ["David", "Marie", "Bill", "Cameron", "Sven", "Joe"]
     }
 }

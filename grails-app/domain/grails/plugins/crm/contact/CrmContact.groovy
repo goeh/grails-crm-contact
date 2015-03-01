@@ -120,7 +120,7 @@ class CrmContact implements CrmContactInformation {
     static relatable = true
     static auditable = true
 
-    static final Comparator lastNameFirstNameComparator =
+    static final Comparator<CrmContact> lastNameFirstNameComparator =
             { a, b -> a.person ? (a.lastName == b.lastName ? a.firstName <=> b.firstName : a.lastName <=> b.lastName) : a.name <=> b.name } as Comparator
 
     def beforeValidate() {

@@ -3,37 +3,38 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.6
 
+grails.project.dependency.resolver = "maven"
 grails.project.dependency.resolution = {
-    inherits("global") {}
+    inherits "global"
     log "warn"
-    legacyResolve false
     repositories {
         grailsCentral()
+        mavenLocal()
         mavenCentral()
     }
     dependencies {
-        test "org.spockframework:spock-grails-support:0.7-groovy-2.0"
+        // See https://jira.grails.org/browse/GPHIB-30
+        test("javax.validation:validation-api:1.1.0.Final") { export = false }
+        test("org.hibernate:hibernate-validator:5.0.3.Final") { export = false }
     }
 
     plugins {
-        build(":tomcat:$grailsVersion",
-                ":release:2.2.1",
+        build(":release:3.0.1",
                 ":rest-client-builder:1.0.3") {
             export = false
         }
-        runtime ":hibernate:$grailsVersion"
-        test(":spock:0.7") {
+        test(":hibernate4:4.3.6.1") {
+            excludes "net.sf.ehcache:ehcache-core"  // remove this when http://jira.grails.org/browse/GPHIB-18 is resolved
             export = false
-            exclude "spock-grails-support"
         }
-        test(":codenarc:0.21") { export = false }
-        test(":code-coverage:1.2.7") { export = false }
 
-        compile ":crm-core:2.0.2"
-        compile ":crm-security:2.0.0"
-        compile ":crm-tags:2.0.2"
+        test(":codenarc:0.22") { export = false }
+        test(":code-coverage:2.0.3-3") { export = false }
 
-        compile ":sequence-generator:1.0"
+        compile ":crm-security:2.4.0-SNAPSHOT"
+        compile ":crm-tags:2.4.0-SNAPSHOT"
+
+        compile ":sequence-generator:1.1"
         compile ":selection:0.9.8"
     }
 }

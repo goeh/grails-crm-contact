@@ -5,7 +5,7 @@ import spock.lang.Shared
 /**
  * Test categories collection on CrmContact.
  */
-class CrmContactCategorySpec extends grails.plugin.spock.IntegrationSpec {
+class CrmContactCategorySpec extends grails.test.spock.IntegrationSpec {
 
     def crmContactService
 
