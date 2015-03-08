@@ -178,6 +178,7 @@ println result
 
 == Changes
 
+2.4.0:: First version compatible with Grails 2.4.4.
 2.0.2:: Changes due to +CrmContactInformation+ interface changes in plugin link:/plugins/crm-core/index.html#crm-changes[crm-core] version 2.0.1. +
 New method +Long CrmContact#getCompanyId()+.
 2.0.1:: Fixed bug in +CrmContactService#list(Map, Map)+ where query on +related+ returned ID:s for the related contact, it should return self side only. +
