@@ -282,7 +282,16 @@ class CrmContact implements CrmContactInformation {
 
     @Override
     String toString() {
-        name
+        if(name) {
+            return name
+        } else if (firstName && lastName) {
+            return firstName + ' ' + lastName
+        } else if (firstName) {
+            return firstName
+        } else if (lastName) {
+            return lastName
+        }
+        return 'null'
     }
 
     transient String getVcard() {
