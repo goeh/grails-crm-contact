@@ -215,12 +215,12 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         crmContactService.list([tags: "level:mid&senior"], [:]).size() == 0
     }
 
-    def "find contacts by multiple tag names"() {
+    def "find contacts by multiple tag names (and)"() {
         when:
         new CrmTag(name: "level").save(failOnError: true)
         new CrmTag(name: "another tag name").save(failOnError: true)
         new CrmContact(firstName: "Developer", lastName: "One").save(failOnError: true).setTagValue("level", "entry").setTagValue("another tag name", "junior")
-        new CrmContact(firstName: "Developer", lastName: "Two").save(failOnError: true).setTagValue("level", "mid")
+        new CrmContact(firstName: "Developer", lastName: "Two").save(failOnError: true).setTagValue("level", "entry")
         new CrmContact(firstName: "Developer", lastName: "Three").save(failOnError: true).setTagValue("level", "senior")
         new CrmContact(firstName: "Developer", lastName: "Four").save(failOnError: true).setTagValue("level", "junior")
         new CrmContact(firstName: "Developer", lastName: "Five").save(failOnError: true).setTagValue("level", "senior")
@@ -228,6 +228,7 @@ class CrmContactServiceSpec extends grails.plugin.spock.IntegrationSpec {
         then:
         crmContactService.list([tags: ["level:entry", "another tag name:junior"]], [:]).size() == 1
     }
+
 
     def "find contacts by parent"() {
         when:

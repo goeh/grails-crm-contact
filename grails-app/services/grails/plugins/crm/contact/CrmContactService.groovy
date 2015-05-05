@@ -248,10 +248,17 @@ class CrmContactService {
         if (query.tags) {
             def tagged
             if (!(query.tags instanceof String)) {
+                def firstTag = query.tags.first()
+                def remaining = query.tags.clone()
+                remaining -= firstTag
+                tagged = crmTagService.findAllIdByTag(CrmContact, *(firstTag.split(':')))
+                if (tagged) {
+                    ids.addAll(tagged)
+                }
                 for (tagNameAndValue in query.tags) {
                     tagged = crmTagService.findAllIdByTag(CrmContact, *(tagNameAndValue.split(':')))
                     if (tagged) {
-                        ids.addAll(tagged)
+                        ids = ids.intersect(tagged)
                     }
                 }
                 if (ids.size() == 0) {
