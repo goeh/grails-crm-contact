@@ -7,7 +7,7 @@ import spock.lang.Shared
 /**
  * Test import of contacts using the crm-import plugin.
  */
-class CrmContactImportSpec extends grails.plugin.spock.IntegrationSpec {
+class CrmContactImportSpec extends grails.test.spock.IntegrationSpec {
 
     def crmContactService
     def crmImportService

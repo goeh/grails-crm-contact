@@ -106,10 +106,10 @@ class CrmContact implements CrmContactInformation {
         //addresses cascade: 'all-delete-orphan'
     }
 
-    static mappedBy = [children:'parent']
+    static mappedBy = [children: 'parent']
 
     static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'companyId', 'company', 'person',
-            'vcard', 'dao', 'relations', 'primaryRelation', 'primaryContact', 'primaryContactAddress']
+                         'vcard', 'dao', 'relations', 'primaryRelation', 'primaryContact', 'primaryContactAddress']
 
     static searchable = {
         name boost: 1.5
@@ -119,6 +119,9 @@ class CrmContact implements CrmContactInformation {
     static dynamicProperties = true
     static relatable = true
     static auditable = true
+
+    static final Comparator<CrmContact> lastNameFirstNameComparator =
+            { a, b -> a.person ? (a.lastName == b.lastName ? a.firstName <=> b.firstName : a.lastName <=> b.lastName) : a.name <=> b.name } as Comparator
 
     def beforeValidate() {
         if (!number) {
@@ -142,7 +145,7 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient List<CrmContactRelation> getRelations(String relationType = null) {
-        if(!ident()) {
+        if (!ident()) {
             return null
         }
         CrmContactRelation.createCriteria().list() {
@@ -151,7 +154,7 @@ class CrmContact implements CrmContactInformation {
                 eq('b', this)
             }
             type {
-                if(relationType != null) {
+                if (relationType != null) {
                     eq('param', relationType)
                 }
                 order 'orderIndex', 'asc'
@@ -167,7 +170,7 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient Map getPrimaryRelation() {
-        if(!ident()) {
+        if (!ident()) {
             return null
         }
         def rel = CrmContactRelation.createCriteria().get() {
@@ -175,7 +178,7 @@ class CrmContact implements CrmContactInformation {
             eq('primary', true)
             cache true
         }
-        if(rel) {
+        if (rel) {
             def other = rel.b
             def result = other.dao
             result.id = other.id
@@ -186,7 +189,7 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient CrmContact getPrimaryContact() {
-        if(!ident()) {
+        if (!ident()) {
             return null
         }
         CrmContactRelation.createCriteria().get() {
@@ -208,9 +211,9 @@ class CrmContact implements CrmContactInformation {
 
     transient CrmContactAddress getAddress(String type = null) {
         CrmContactAddress a
-        if(type != null) {
-            a = addresses?.find{it.type.param == type}
-            if(! a) {
+        if (type != null) {
+            a = addresses?.find { it.type.param == type }
+            if (!a) {
                 a = primaryContact?.getAddress(type)
             }
         } else {
@@ -262,7 +265,7 @@ class CrmContact implements CrmContactInformation {
         final StringBuilder s = new StringBuilder()
         s << name
         def p = getPrimaryContact()
-        if(p) {
+        if (p) {
             s << ", "
             s << p.name
         }
@@ -279,7 +282,16 @@ class CrmContact implements CrmContactInformation {
 
     @Override
     String toString() {
-        name
+        if(name) {
+            return name
+        } else if (firstName && lastName) {
+            return firstName + ' ' + lastName
+        } else if (firstName) {
+            return firstName
+        } else if (lastName) {
+            return lastName
+        }
+        return 'null'
     }
 
     transient String getVcard() {
@@ -320,8 +332,9 @@ class CrmContact implements CrmContactInformation {
         s.toString()
     }
 
-    public static final List<String> BIND_WHITELIST = ['name', 'firstName', 'lastName', 'title', 'telephone', 'mobile', 'fax', 'email', 'url',
-            'guid', 'username', 'number', 'number2', 'ssn', 'duns', 'description', 'gender', 'birthYear', 'birthMonth', 'birthDay'].asImmutable()
+    public static
+    final List<String> BIND_WHITELIST = ['name', 'firstName', 'lastName', 'title', 'telephone', 'mobile', 'fax', 'email', 'url',
+                                         'guid', 'username', 'number', 'number2', 'ssn', 'duns', 'description', 'gender', 'birthYear', 'birthMonth', 'birthDay'].asImmutable()
 
     private Map<String, Object> getSelfProperties(List<String> props) {
         props.inject([:]) { m, i ->
@@ -347,13 +360,13 @@ class CrmContact implements CrmContactInformation {
     }
 
     static String soundexEncode(final String s) {
-        if(! s) {
+        if (!s) {
             return null
         }
         String soundex
         try {
             soundex = new Soundex().encode(getNormalizedName(s))
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             System.err.println("WARNING: Failed to soundex encode '${s}'")
             soundex = null
         }
@@ -361,13 +374,13 @@ class CrmContact implements CrmContactInformation {
     }
 
     static String doubleMetaphoneEncode(final String s) {
-        if(! s) {
+        if (!s) {
             return null
         }
         String result
         try {
             result = new DoubleMetaphone().encode(getNormalizedName(s))
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             System.err.println("WARNING: Failed to double metaphone encode '${s}'")
             result = null
         }

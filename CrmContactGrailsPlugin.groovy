@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Goran Ehrsson.
+ * Copyright (c) 2015 Goran Ehrsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import grails.plugins.crm.contact.CrmContact
 
 class CrmContactGrailsPlugin {
     def groupId = ""
-    def version = "2.0.3-SNAPSHOT"
+    def version = "2.4.0"
     def grailsVersion = "2.2 > *"
     def dependsOn = [:]
     def loadAfter = ['crmCore', 'selection', 'crmTags']
@@ -39,37 +39,6 @@ For user interface see the crm-contact-ui plugin which provides a Twitter Bootst
     def organization = [name: "Technipelago AB", url: "http://www.technipelago.se/"]
     def issueManagement = [system: "github", url: "https://github.com/goeh/grails-crm-contact/issues"]
     def scm = [url: "https://github.com/goeh/grails-crm-contact"]
-
-    def features = {
-        crmContact {
-            description "Contact Management"
-            link controller: 'crmContact'
-            permissions {
-                guest "crmContact:index,list,show,createFavorite,deleteFavorite,clearQuery,qrcode,autocompleteTitle,autocompleteCategoryType,autocompleteTags", "qrcode:*"
-                partner "crmContact:index,list,show,createFavorite,deleteFavorite,clearQuery,qrcode,autocompleteTitle,autocompleteCategoryType,autocompleteTags", "qrcode:*"
-                user "crmContact:*", "qrcode:*"
-                admin "crmContact,crmAddressType,crmContactCategoryType,crmContactRelationType:*", "qrcode:*"
-            }
-            statistics {tenant ->
-                def total = CrmContact.countByTenantId(tenant)
-                def updated = CrmContact.countByTenantIdAndLastUpdatedGreaterThan(tenant, new Date() - 31)
-                def usage
-                if (total > 0) {
-                    def tmp = updated / total
-                    if (tmp < 0.1) {
-                        usage = 'low'
-                    } else if (tmp < 0.3) {
-                        usage = 'medium'
-                    } else {
-                        usage = 'high'
-                    }
-                } else {
-                    usage = 'none'
-                }
-                return [usage: usage, objects: total]
-            }
-        }
-    }
 
     def doWithApplicationContext = { applicationContext ->
 
