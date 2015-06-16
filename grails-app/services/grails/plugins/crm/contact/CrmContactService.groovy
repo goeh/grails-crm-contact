@@ -111,10 +111,10 @@ class CrmContactService {
 
     @CompileStatic
     CrmContact getContact(Long id) {
-        getContact(id, TenantUtils.tenant)
+        getContactInternal(id, TenantUtils.tenant)
     }
 
-    private CrmContact getContact(Long id, Long tenant) {
+    private getContactInternal(Long id, Long tenant) {
         final CrmContact crmContact = CrmContact.get(id)
         crmContact.tenantId == tenant ? crmContact : null
     }
@@ -942,7 +942,7 @@ class CrmContactService {
                     company.save(failOnError: true, flush: true)
                 }
                 if (params.id) {
-                    crmContact = getContact(Long.valueOf(params.id), tenant)
+                    crmContact = getContactInternal(Long.valueOf(params.id), tenant)
                 }
                 if (!crmContact) {
                     crmContact = new CrmContact()
@@ -988,7 +988,7 @@ class CrmContactService {
             } else {
                 // Create a company, not a person.
                 if (params.id) {
-                    crmContact = getContact(Long.valueOf(params.id), tenant)
+                    crmContact = getContactInternal(Long.valueOf(params.id), tenant)
                 }
                 if (!crmContact) {
                     crmContact = new CrmContact()
@@ -1009,7 +1009,7 @@ class CrmContactService {
             }
         } else if (firstName || lastName) {
             if (params.id) {
-                crmContact = getContact(Long.valueOf(params.id), tenant)
+                crmContact = getContactInternal(Long.valueOf(params.id), tenant)
             }
             if (!crmContact) {
                 crmContact = new CrmContact()
