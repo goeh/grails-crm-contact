@@ -114,9 +114,9 @@ class CrmContactService {
         getContactInternal(id, TenantUtils.tenant)
     }
 
-    private getContactInternal(Long id, Long tenant) {
+    private CrmContact getContactInternal(Long id, Long tenant) {
         final CrmContact crmContact = CrmContact.get(id)
-        crmContact.tenantId == tenant ? crmContact : null
+        crmContact?.tenantId == tenant ? crmContact : null
     }
 
     CrmContact findByNumber(String number) {
