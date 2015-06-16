@@ -30,6 +30,8 @@ class CrmContactService {
 
     static transactional = true
 
+    public static final String DEFAULT_ADDRESS_TYPE = 'postal'
+
     def grailsApplication
     def crmSecurityService
     def sequenceGeneratorService
@@ -51,7 +53,7 @@ class CrmContactService {
 
             // Postal address type
             def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
-            createAddressType(name: s, param: "postal").save(failOnError: true)
+            createAddressType(name: s, param: DEFAULT_ADDRESS_TYPE).save(failOnError: true)
             // Visit address type
             s = messageSource.getMessage("crmAddressType.name.visit", null, "Visit Address", locale)
             createAddressType(name: s, param: "visit").save(failOnError: true)
@@ -107,8 +109,14 @@ class CrmContactService {
         log.warn("Deleted $count contacts in tenant $tenant")
     }
 
+    @CompileStatic
     CrmContact getContact(Long id) {
-        CrmContact.findByIdAndTenantId(id, TenantUtils.tenant, [cache: true])
+        getContact(id, TenantUtils.tenant)
+    }
+
+    private CrmContact getContact(Long id, Long tenant) {
+        final CrmContact crmContact = CrmContact.get(id)
+        crmContact.tenantId == tenant ? crmContact : null
     }
 
     CrmContact findByNumber(String number) {
@@ -400,6 +408,17 @@ class CrmContactService {
         CrmAddressType.findByParamAndTenantId(param, TenantUtils.tenant)
     }
 
+    CrmAddressType getDefaultAddressType() {
+        def type = getAddressType(DEFAULT_ADDRESS_TYPE)
+        if(! type) {
+            def tenantInfo = crmSecurityService.getTenantInfo(TenantUtils.tenant)
+            def locale = tenantInfo ? tenantInfo.locale : Locale.getDefault()
+            def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
+            type = createAddressType(name: s, param: DEFAULT_ADDRESS_TYPE, true)
+        }
+        return type
+    }
+
     @CompileStatic
     private String paramify(final String name, Integer maxSize = 20) {
         String param = name.toLowerCase().replace(' ', '-')
@@ -661,10 +680,7 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                def tenantInfo = crmSecurityService.getTenantInfo(tenant)
-                def locale = tenantInfo ? tenantInfo.locale : Locale.getDefault()
-                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
-                address.type = createAddressType(name: s, param: "postal", true)
+                address.type = getDefaultAddressType()
             }
             if (address.preferred == null) {
                 address.preferred = preferred
@@ -726,10 +742,7 @@ class CrmContactService {
                 }
                 address.type = tmp
             } else {
-                def tenantInfo = crmSecurityService.getTenantInfo(tenant)
-                def locale = tenantInfo ? tenantInfo.locale : Locale.getDefault()
-                def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
-                address.type = createAddressType(name: s, param: "postal", true)
+                address.type = getDefaultAddressType()
             }
             if (address.preferred == null) {
                 address.preferred = preferred
@@ -899,7 +912,7 @@ class CrmContactService {
                 }
             }
             if (!address.type) {
-                address.type = "postal"
+                address.type = DEFAULT_ADDRESS_TYPE
             }
             if (address.latitude) {
                 address.latitude = Float.valueOf(address.latitude)
@@ -929,7 +942,7 @@ class CrmContactService {
                     company.save(failOnError: true, flush: true)
                 }
                 if (params.id) {
-                    crmContact = CrmContact.findByIdAndTenantId(Long.valueOf(params.id), tenant)
+                    crmContact = getContact(Long.valueOf(params.id), tenant)
                 }
                 if (!crmContact) {
                     crmContact = new CrmContact()
@@ -975,7 +988,7 @@ class CrmContactService {
             } else {
                 // Create a company, not a person.
                 if (params.id) {
-                    crmContact = CrmContact.findByIdAndTenantId(Long.valueOf(params.id), tenant)
+                    crmContact = getContact(Long.valueOf(params.id), tenant)
                 }
                 if (!crmContact) {
                     crmContact = new CrmContact()
@@ -996,7 +1009,7 @@ class CrmContactService {
             }
         } else if (firstName || lastName) {
             if (params.id) {
-                crmContact = CrmContact.findByIdAndTenantId(Long.valueOf(params.id), tenant)
+                crmContact = getContact(Long.valueOf(params.id), tenant)
             }
             if (!crmContact) {
                 crmContact = new CrmContact()

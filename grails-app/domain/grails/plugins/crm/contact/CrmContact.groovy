@@ -15,6 +15,7 @@
  */
 package grails.plugins.crm.contact
 
+import grails.plugins.crm.core.CrmAddress
 import grails.plugins.crm.core.TenantEntity
 import grails.plugins.crm.core.AuditEntity
 import grails.plugins.crm.core.CrmContactInformation
@@ -230,7 +231,7 @@ class CrmContact implements CrmContactInformation {
         primaryContact?.addresses?.find { addressType == null || it.type == addressType }
     }
 
-    def setAddress(addressBean) {
+    CrmAddress setAddress(addressBean) {
         CrmContactAddress addr = getMyAddress()
         if (!addr) {
             addr = new CrmContactAddress(preferred: true)
