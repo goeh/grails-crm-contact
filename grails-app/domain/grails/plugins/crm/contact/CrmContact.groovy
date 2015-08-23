@@ -16,6 +16,7 @@
 package grails.plugins.crm.contact
 
 import grails.plugins.crm.core.CrmAddress
+import grails.plugins.crm.core.CrmAddressInformation
 import grails.plugins.crm.core.TenantEntity
 import grails.plugins.crm.core.AuditEntity
 import grails.plugins.crm.core.CrmContactInformation
@@ -109,8 +110,7 @@ class CrmContact implements CrmContactInformation {
 
     static mappedBy = [children: 'parent']
 
-    static transients = ['preferredPhone', 'address', 'myAddress', 'fullName', 'fullAddress', 'companyName', 'companyId', 'company', 'person',
-                         'vcard', 'dao', 'relations', 'primaryRelation', 'primaryContact', 'primaryContactAddress']
+    static transients = ['address']
 
     static searchable = {
         name boost: 1.5
@@ -245,10 +245,20 @@ class CrmContact implements CrmContactInformation {
         return addr
     }
 
-    @Override
+    /**
+     * Return the complete address, usually with comma between street name, postal code, etc.
+     *
+     * @deprecated use getAddressInformation().toString() instead
+     * @return
+     */
     transient String getFullAddress() {
-        def a = getAddress()
-        return a ? a.toString() : ''
+        def a = getAddressInformation()
+        return a != null ? a.toString() : ''
+    }
+
+    @Override
+    transient CrmAddressInformation getAddressInformation() {
+        getAddress()
     }
 
     @Override
@@ -262,7 +272,7 @@ class CrmContact implements CrmContactInformation {
     }
 
     @Override
-    String getFullName() {
+    transient String getFullName() {
         final StringBuilder s = new StringBuilder()
         s << name
         def p = getPrimaryContact()

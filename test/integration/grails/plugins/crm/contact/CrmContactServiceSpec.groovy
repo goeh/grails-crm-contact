@@ -229,4 +229,24 @@ class CrmContactServiceSpec extends grails.test.spock.IntegrationSpec {
         crmContactService.list([related: "Father Grails"], [:]).size() == 3
         crmContactService.list([related: father.id], [:]).size() == 3
     }
+
+    def "create contact information"() {
+        when: "create contact info using strict property names"
+        def info = crmContactService.createContactInformation(firstName: 'Joe', lastName: 'Average', companyName: 'IBM',
+                address: [address1: "123 Streetname", postalCode: '55555', city: 'The City'])
+
+        then:
+        info.fullName == "Joe Average, IBM"
+        info.fullAddress == "123 Streetname, 55555 The City"
+        info.addressInformation.address1 == '123 Streetname'
+
+        when: "create contact info using property name aliases 'company' and 'address'"
+        info = crmContactService.createContactInformation(firstName: 'Joe', lastName: 'Average', company: 'IBM',
+                address: "123 Streetname, 55555 The City")
+
+        then:
+        info.fullName == "Joe Average, IBM"
+        info.fullAddress == "123 Streetname, 55555 The City"
+        info.addressInformation.address1 == "123 Streetname, 55555 The City"
+    }
 }
