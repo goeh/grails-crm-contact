@@ -44,7 +44,7 @@ class CrmContactAddress extends CrmAddress {
 
     boolean equals(o) {
         if (this.is(o)) return true
-        if (getClass() != o.class) return false
+        if (o == null || ! getClass().isAssignableFrom(o.class)) return false
 
         CrmContactAddress that = (CrmContactAddress) o
 
