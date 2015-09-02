@@ -15,7 +15,9 @@
  */
 package grails.plugins.crm.contact
 
+import grails.plugins.crm.core.CrmAddressInformation
 import grails.plugins.crm.core.CrmContactInformation
+import grails.plugins.crm.core.CrmEmbeddedAddress
 import grails.plugins.crm.core.CrmEmbeddedContact
 import grails.plugins.crm.core.DateUtils
 import grails.plugins.crm.core.TenantUtils
@@ -649,6 +651,18 @@ class CrmContactService {
         def username = crmSecurityService.currentUser?.username
         event(for: "crmContactCategoryType", topic: "deleted", data: [id: id, tenant: tenant, user: username, name: tombstone])
         return tombstone
+    }
+
+    /**
+     * Create an CrmEmbeddedAddress instance populated with specified values.
+     * @param values see CrmEmbeddedAddress for valid properties
+     * @return a CrmEmbeddedAddress instance
+     */
+    CrmAddressInformation createAddressInformation(Map<String, Object> values) {
+        def m = new CrmEmbeddedAddress()
+        def args = [m, values]
+        new BindDynamicMethod().invoke(m, 'bind', args.toArray())
+        return m
     }
 
     /**
