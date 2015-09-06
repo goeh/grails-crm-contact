@@ -306,34 +306,35 @@ class CrmContact implements CrmContactInformation {
     }
 
     transient String getVcard() {
+        final CrmAddress a = this.getAddress(null)
         final StringBuilder postalAddress = new StringBuilder()
-        if (address?.address1) {
-            postalAddress << address.address1
+        if (a?.address1) {
+            postalAddress << a.address1
         }
-        if (address?.address2) {
+        if (a?.address2) {
             if (postalAddress.length() > 0) {
                 postalAddress << ' '
             }
-            postalAddress << address.address2
+            postalAddress << a.address2
         }
-        if (address?.address3) {
+        if (a?.address3) {
             if (postalAddress.length() > 0) {
                 postalAddress << ' '
             }
-            postalAddress << address.address3
+            postalAddress << a.address3
         }
         final StringBuilder s = new StringBuilder()
         s << "BEGIN:VCARD\n"
         s << "VERSION:3.0\n"
         s << "N:${lastName ?: ''};${firstName ?: ''};;;\n"
-        s << """FN: ${name ?: ''}\n"""
-        s << "ORG:${company ? name : primaryContact?.name}\n"
+        s << """FN:${name ?: ''}\n"""
+        s << "ORG:${isCompany() ? name : primaryContact?.name}\n"
         s << "TITLE:${title ? title.replace(',', '\\,') : ''}\n"
         //s << "PHOTO:http://www.example.com/dir_photos/my_photo.gif\n"
         s << "TEL;TYPE=work,voice,pref:${telephone ?: ''}\n"
         s << "TEL;TYPE=cell,voice:${mobile ?: ''}\n"
         s << "EMAIL;type=internet,pref:${email ?: ''}\n"
-        s << "ADR;TYPE=work,postal,pref:;;${postalAddress};${address?.city ?: ''};${address?.region ?: ''};${address?.postalCode ?: ''};${address?.country ?: ''}\n"
+        s << "ADR;TYPE=work,postal,pref:;;${postalAddress};${a?.city ?: ''};${a?.region ?: ''};${a?.postalCode ?: ''};${a?.country ?: ''}\n"
 
         final DateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
         s << "REV:${timestampFormat.format(lastUpdated ?: dateCreated)}\n"

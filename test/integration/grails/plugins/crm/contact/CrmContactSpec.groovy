@@ -80,8 +80,14 @@ class CrmContactSpec extends grails.test.spock.IntegrationSpec {
         given: "enable strict DUNS validation"
         grailsApplication.config.crm.contact.duns.strict = true
 
+        when: "create a company without DUNS number"
+        def contact = new CrmContact(name: 'D&B')
+
+        then: "dyns is null"
+        contact.duns == null
+
         when: "create a company and assign D-U-N-S number (including dashes)"
-        def contact = new CrmContact(name: 'D&B', duns: "12-345-6789")
+        contact = new CrmContact(name: 'D&B', duns: "12-345-6789")
 
         then: "dashes should be removed"
         contact.validate()
@@ -100,7 +106,7 @@ class CrmContactSpec extends grails.test.spock.IntegrationSpec {
     def "test fullName"() {
         when:
         def company = new CrmContact(name: 'Groovy Corporation').save(failOnError: true)
-        def person = new CrmContact(name: 'George Groovy').save(failOnError: true)
+        def person = new CrmContact(firstName: 'George', lastName: 'Groovy').save(failOnError: true)
         def employer = new CrmContactRelationType(name: "Employer", param: "employer").save(failOnError: true)
         new CrmContactRelation(a: person, b: company, type: employer, primary: true).save(failOnError: true)
         then:
@@ -111,7 +117,7 @@ class CrmContactSpec extends grails.test.spock.IntegrationSpec {
     def "test CrmContactInformation interface"() {
         when:
         CrmContactInformation company = new CrmContact(name: 'Groovy Corporation').save(failOnError: true)
-        CrmContactInformation person = new CrmContact(name: 'George Groovy').save(failOnError: true)
+        CrmContactInformation person = new CrmContact(firstName: 'George', lastName: 'Groovy').save(failOnError: true)
         def employer = new CrmContactRelationType(name: "Employer", param: "employer").save(failOnError: true)
         new CrmContactRelation(a: person, b: company, type: employer, primary: true).save(failOnError: true)
 
@@ -138,5 +144,19 @@ class CrmContactSpec extends grails.test.spock.IntegrationSpec {
 
         then:
         list*.firstName == ["David", "Marie", "Bill", "Cameron", "Sven", "Joe"]
+    }
+
+    def "test vCard support"() {
+        when:
+        def company = new CrmContact(name: 'Groovy Corporation', address: [address1: '1234 Groovy Street', postalCode: '55555', city: 'Javaland']).save(failOnError: true)
+        def person = new CrmContact(firstName: 'George', lastName: 'Groovy', telephone: '555-12345-6789').save(failOnError: true)
+        def employer = new CrmContactRelationType(name: "Employer", param: "employer").save(failOnError: true)
+        new CrmContactRelation(a: person, b: company, type: employer, primary: true).save(failOnError: true, flush: true)
+
+        then:
+        company.vcard.contains('FN:Groovy Corporation')
+        person.vcard.contains('FN:George Groovy')
+        person.vcard.contains('ORG:Groovy Corporation')
+        person.vcard.contains('TEL;TYPE=work,voice,pref:555-12345-6789')
     }
 }

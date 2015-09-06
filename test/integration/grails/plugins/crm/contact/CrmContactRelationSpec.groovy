@@ -15,6 +15,15 @@ class CrmContactRelationSpec extends grails.test.spock.IntegrationSpec {
         type = crmContactService.createRelationType(name: "Test", param: "test", true)
     }
 
+    def "relations on a transent instance should return null"() {
+        when:
+        def contact = new CrmContact()
+
+        then:
+        contact.getRelations() == null
+        contact.getPrimaryRelation() == null
+    }
+
     def "add relation between contacts"() {
         given:
         def count = CrmContactRelation.count()
@@ -30,8 +39,11 @@ class CrmContactRelationSpec extends grails.test.spock.IntegrationSpec {
         then:
         company.getRelations().size() == 2
         employee1.getRelations().size() == 1
+        employee1.getPrimaryRelation().name == "ACME Ltd."
         employee2.getRelations().size() == 1
+        employee2.getPrimaryRelation().name == "ACME Ltd."
         employee3.getRelations().size() == 0
+        employee3.getPrimaryRelation() == null
 
         when:
         crmContactService.deleteContact(company)
