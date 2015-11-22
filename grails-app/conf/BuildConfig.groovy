@@ -43,7 +43,7 @@ grails.project.dependency.resolution = {
         compile ":crm-security:2.4.2"
         compile ":crm-tags:2.4.1"
 
-        compile ":sequence-generator:1.1"
+        compile ":sequence-generator:1.2"
         compile ":selection:0.9.8"
     }
 }
