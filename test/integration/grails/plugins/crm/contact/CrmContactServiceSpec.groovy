@@ -1,6 +1,7 @@
 package grails.plugins.crm.contact
 
 import spock.lang.Shared
+import grails.plugins.crm.tags.CrmTag
 
 class CrmContactServiceSpec extends grails.test.spock.IntegrationSpec {
 
@@ -196,6 +197,38 @@ class CrmContactServiceSpec extends grails.test.spock.IntegrationSpec {
         crmContactService.list([tags: "java,scala"], [:]).size() == 4
         crmContactService.list([tags: "groovy&grails"], [:]).size() == 3
     }
+
+
+    def "find contacts by named tag"() {
+        when:
+        new CrmTag(name: "level").save(failOnError: true)
+        new CrmTag(name: "another tag name").save(failOnError: true)
+        new CrmContact(firstName: "Developer", lastName: "One").save(failOnError: true).setTagValue("level", "entry").setTagValue("another tag name", "junior")
+        new CrmContact(firstName: "Developer", lastName: "Two").save(failOnError: true).setTagValue("level", "mid")
+        new CrmContact(firstName: "Developer", lastName: "Three").save(failOnError: true).setTagValue("level", "senior")
+        new CrmContact(firstName: "Developer", lastName: "Four").save(failOnError: true).setTagValue("level", "junior")
+        new CrmContact(firstName: "Developer", lastName: "Five").save(failOnError: true).setTagValue("level", "senior")
+
+        then:
+        crmContactService.list([tags: ["level:entry"]], [:]).size() == 1
+        crmContactService.list([tags: "level:mid,senior,junior"], [:]).size() == 4
+        crmContactService.list([tags: "level:mid&senior"], [:]).size() == 0
+    }
+
+    def "find contacts by multiple tag names (and)"() {
+        when:
+        new CrmTag(name: "level").save(failOnError: true)
+        new CrmTag(name: "another tag name").save(failOnError: true)
+        new CrmContact(firstName: "Developer", lastName: "One").save(failOnError: true).setTagValue("level", "entry").setTagValue("another tag name", "junior")
+        new CrmContact(firstName: "Developer", lastName: "Two").save(failOnError: true).setTagValue("level", "entry")
+        new CrmContact(firstName: "Developer", lastName: "Three").save(failOnError: true).setTagValue("level", "senior")
+        new CrmContact(firstName: "Developer", lastName: "Four").save(failOnError: true).setTagValue("level", "junior")
+        new CrmContact(firstName: "Developer", lastName: "Five").save(failOnError: true).setTagValue("level", "senior")
+
+        then:
+        crmContactService.list([tags: ["level:entry", "another tag name:junior"]], [:]).size() == 1
+    }
+
 
     def "find contacts by parent"() {
         when:
