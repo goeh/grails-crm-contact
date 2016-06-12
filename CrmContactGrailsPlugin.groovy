@@ -96,6 +96,13 @@ For user interface see the crm-contact-ui plugin which provides a Twitter Bootst
                 }
             }
         }
+
+        if(application.config.crm.contact.indexing.enabled) {
+            applicationContext.eventTriggeringInterceptor.datastores.each { key, datastore ->
+                def listener = new grails.plugins.crm.contact.AuditEventListener(datastore)
+                applicationContext.addApplicationListener(listener)
+            }
+        }
     }
 
 }
