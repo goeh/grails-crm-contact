@@ -215,10 +215,10 @@ class CrmContactService {
                     property('id')
                 }
             }
-            if(related instanceof Number) {
+            if (related instanceof Number) {
                 or {
                     b {
-                        eq('id', ((Number)related).longValue())
+                        eq('id', ((Number) related).longValue())
                     }
                 }
             } else {
@@ -235,10 +235,10 @@ class CrmContactService {
                     property('id')
                 }
             }
-            if(related instanceof Number) {
+            if (related instanceof Number) {
                 or {
                     a {
-                        eq('id', ((Number)related).longValue())
+                        eq('id', ((Number) related).longValue())
                     }
                 }
             } else {
@@ -259,17 +259,17 @@ class CrmContactService {
         Set<Long> ids = [] as Set
         if (query.tags) {
             def tagged = crmTagService.findAllIdByTag(CrmContact, query.tags)
-            if(tagged) {
+            if (tagged) {
                 ids.addAll(tagged)
             } else {
                 ids = NO_RESULT
             }
         }
 
-        if(query.related) {
+        if (query.related) {
             def related = findRelatedIds(query.related)
-            if(related) {
-                if(ids != NO_RESULT) {
+            if (related) {
+                if (ids != NO_RESULT) {
                     ids.addAll(related)
                 }
             } else {
@@ -366,7 +366,7 @@ class CrmContactService {
         if (query.parent) {
             parent {
                 if (query.parent instanceof Number) {
-                    eq('id', ((Number)query.parent).longValue())
+                    eq('id', ((Number) query.parent).longValue())
                 } else {
                     ilike('name', SearchUtils.wildcard(query.parent.toString()))
                 }
@@ -414,7 +414,7 @@ class CrmContactService {
 
     CrmAddressType getDefaultAddressType() {
         def type = getAddressType(DEFAULT_ADDRESS_TYPE)
-        if(! type) {
+        if (!type) {
             def tenantInfo = crmSecurityService.getTenantInfo(TenantUtils.tenant)
             def locale = tenantInfo ? tenantInfo.locale : Locale.getDefault()
             def s = messageSource.getMessage("crmAddressType.name.postal", null, "Postal Address", locale)
@@ -489,12 +489,12 @@ class CrmContactService {
 
     CrmContactRelation addRelation(CrmContact a, CrmContact b, Object typeOrParam, boolean primary, String description = null) {
         CrmContactRelationType type
-        if(typeOrParam == null) {
+        if (typeOrParam == null) {
             type = CrmContactRelationType.createCriteria().get() {
                 order 'orderIndex', 'asc'
                 maxResults 1
             }
-        } else if(typeOrParam instanceof CrmContactRelationType) {
+        } else if (typeOrParam instanceof CrmContactRelationType) {
             type = typeOrParam
         } else {
             type = getRelationType(typeOrParam.toString())
@@ -528,7 +528,7 @@ class CrmContactService {
             ne('id', relation.id)
         }
         for (rel in existing) {
-            if(rel.primary) {
+            if (rel.primary) {
                 rel.primary = false
                 rval = true
             }
@@ -538,8 +538,8 @@ class CrmContactService {
 
     CrmContactRelation getRelation(CrmContact a, CrmContact b, Object typeOrParam = null) {
         CrmContactRelationType type
-        if(typeOrParam != null) {
-            if(typeOrParam instanceof CrmContactRelationType) {
+        if (typeOrParam != null) {
+            if (typeOrParam instanceof CrmContactRelationType) {
                 type = typeOrParam
             } else {
                 type = getRelationType(typeOrParam.toString())
@@ -563,6 +563,20 @@ class CrmContactService {
                 eq('type', type)
             }
         }
+    }
+
+    List<CrmContact> getRelatedContacts(CrmContact crmContact, Map params = [:]) {
+        def ids = findRelatedIds(crmContact.id)
+        def result
+        if (ids) {
+            ids.remove(crmContact.id) // Remove self.
+            result = CrmContact.createCriteria().list(params) {
+                inList('id', ids)
+            }
+        } else {
+            result = []
+        }
+        result
     }
 
     List<CrmContactRelationType> listRelationType(String name, Map params = [:]) {
@@ -672,14 +686,14 @@ class CrmContactService {
      */
     CrmContactInformation createContactInformation(Map<String, Object> values) {
         def m = new CrmEmbeddedContact()
-        if(values.company && ! values.companyName) {
+        if (values.company && !values.companyName) {
             values.companyName = values.company
         }
         def args = [m, values]
         new BindDynamicMethod().invoke(m, 'bind', args.toArray())
         def address = values.address
-        if(address) {
-            if(address instanceof String) {
+        if (address) {
+            if (address instanceof String) {
                 address = [address1: address]
             }
             /*
@@ -806,8 +820,8 @@ class CrmContactService {
             setNumberUnique(crmContact)
             if (!crmContact.hasErrors()) {
                 def related = params.related
-                if(crmContact.save() && related) {
-                    if(related instanceof List) {
+                if (crmContact.save() && related) {
+                    if (related instanceof List) {
                         addRelation(crmContact, related[0], related[1], true)
                     } else {
                         addRelation(crmContact, related, null, true)
