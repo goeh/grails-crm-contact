@@ -361,7 +361,13 @@ class CrmContact implements CrmContactInformation {
     transient Map<String, Object> getDao(boolean includeChildren = true) {
         final Map<String, Object> map = getSelfProperties(BIND_WHITELIST)
         map.tenant = tenantId
-        map.address = address?.getDao() ?: [:]
+        map.id = ident()
+        map.companyName = getCompanyName()
+        map.fullName = getFullName()
+        map.preferredPhone = getPreferredPhone()
+        def addr = getAddress()
+        map.fullAddress = addr ? addr.toString() : ''
+        map.address = addr ? addr.getDao() : [:]
         if (parent) {
             map.parent = parent.getDao(false)
         }
