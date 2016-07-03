@@ -50,8 +50,11 @@ class CrmContactService {
         }
         def locale = tenant.locale
         TenantUtils.withTenant(tenant.id) {
-
-            sequenceGeneratorService.initSequence(CrmContact, null, tenant.id, null, "%s")
+            // Initialize a number sequence for CrmContact
+            def config = grailsApplication.config.crm.contact.sequence
+            def start = config.start ?: 1L
+            def format = config.format ?: "%s"
+            sequenceGeneratorService.initSequence(CrmContact, null, tenant.id, start, format)
 
             crmTagService.createTag(name: CrmContact.name, multiple: true)
 
