@@ -272,8 +272,47 @@ class CrmContactService {
         if (query.related) {
             def related = findRelatedIds(query.related)
             if (related) {
-                if (ids != NO_RESULT) {
+                if(ids) {
+                    if (ids != NO_RESULT) {
+                        ids.retainAll(related)
+                    }
+                } else {
                     ids.addAll(related)
+                }
+            } else {
+                ids = NO_RESULT
+            }
+        }
+
+        if(query.role) {
+            def rels = CrmContactRelation.createCriteria().list {
+                projections {
+                    a {
+                        property('id')
+                    }
+                    b {
+                        property('id')
+                    }
+                }
+                type {
+                    or {
+                        eq('param', query.role)
+                        ilike('name', SearchUtils.wildcard(query.role))
+                    }
+                }
+            }
+            if(rels) {
+                Set<Long> tmp = [] as Set
+                for(tuple in rels) {
+                    tmp.add(tuple[0])
+                    tmp.add(tuple[1])
+                }
+                if(ids) {
+                    if (ids != NO_RESULT) {
+                        ids.retainAll(tmp)
+                    }
+                } else {
+                    ids.addAll(tmp)
                 }
             } else {
                 ids = NO_RESULT
