@@ -110,7 +110,7 @@ class CrmContact implements CrmContactInformation {
 
     static mappedBy = [children: 'parent']
 
-    static transients = ['address']
+    static transients = ['address', 'birthDate']
 
     static searchable = {
         name boost: 1.5
@@ -281,6 +281,21 @@ class CrmContact implements CrmContactInformation {
             s << p.name
         }
         s.toString()
+    }
+
+    transient Date getBirthDate(TimeZone tz = null) {
+        if(birthYear && birthMonth && birthDay) {
+            def cal = Calendar.getInstance(tz ?: TimeZone.getDefault())
+            cal.set(Calendar.YEAR, birthYear)
+            cal.set(Calendar.MONTH, birthMonth-1)
+            cal.set(Calendar.DAY_OF_MONTH, birthDay)
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            return cal.getTime()
+        }
+        return null
     }
 
     transient boolean isCompany() {
