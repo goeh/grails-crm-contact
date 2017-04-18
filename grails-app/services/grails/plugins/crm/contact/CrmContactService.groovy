@@ -450,6 +450,20 @@ class CrmContactService {
         }
     }
 
+    List<CrmAddressType> listAddressType(String name, Map params = [:]) {
+        CrmAddressType.createCriteria().list(params) {
+            eq('tenantId', TenantUtils.tenant)
+            eq('enabled', params.enabled == null ? true : params.enabled)
+            if (name) {
+                or {
+                    ilike('name', SearchUtils.wildcard(name))
+                    eq('param', name)
+                }
+            }
+            order 'orderIndex', 'asc'
+        }
+    }
+
     CrmAddressType getAddressType(String param) {
         CrmAddressType.findByParamAndTenantId(param, TenantUtils.tenant)
     }
@@ -624,6 +638,7 @@ class CrmContactService {
     List<CrmContactRelationType> listRelationType(String name, Map params = [:]) {
         CrmContactRelationType.createCriteria().list(params) {
             eq('tenantId', TenantUtils.tenant)
+            eq('enabled', params.enabled == null ? true : params.enabled)
             if (name) {
                 or {
                     ilike('name', SearchUtils.wildcard(name))
