@@ -67,7 +67,7 @@ class CrmContact implements CrmContactInformation {
         lastName(maxSize: 64, nullable: true, validator: { val, obj ->
             (val || obj.firstName || obj.name) ? true : 'blank'
         })
-        name(maxSize: 80, nullable: true, validator: { val, obj ->
+        name(maxSize: 128, nullable: true, validator: { val, obj ->
             (val || obj.firstName || obj.lastName) ? true : 'blank'
         })
         namePhonetic(maxSize: 16, nullable: true)
