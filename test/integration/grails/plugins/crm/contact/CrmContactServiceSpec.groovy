@@ -104,7 +104,7 @@ class CrmContactServiceSpec extends grails.test.spock.IntegrationSpec {
     def "try to insert invalid address"() {
         when:
         def company = crmContactService.createCompany(name: "Invalid Company",
-                address: [type: typePostal, address1: "Test Street 1", postalCode: "A POSTAL CODE THAT IS TOO LONG", city: "Test City"],
+                address: [type: typePostal, address1: "Test Street 1", postalCode: "THIS POSTAL CODE IS WAY TOO LOOONG", city: "Test City"],
                 true)
         then:
         company.hasErrors()
