@@ -211,12 +211,15 @@ class CrmContactService {
         return false
     }
 
-    private Set<Long> findRelatedIds(Object related) {
+    private Set<Long> findRelatedIds(Object related, Boolean primary = null) {
         def resultA = CrmContactRelation.createCriteria().list() {
             projections {
                 a {
                     property('id')
                 }
+            }
+            if(primary != null) {
+                eq('primary', primary)
             }
             if (related instanceof Number) {
                 or {
@@ -237,6 +240,9 @@ class CrmContactService {
                 b {
                     property('id')
                 }
+            }
+            if(primary != null) {
+                eq('primary', primary)
             }
             if (related instanceof Number) {
                 or {
@@ -270,7 +276,20 @@ class CrmContactService {
         }
 
         if (query.related) {
-            def related = findRelatedIds(query.related)
+            def related = findRelatedIds(query.related, null)
+            if (related) {
+                if(ids) {
+                    if (ids != NO_RESULT) {
+                        ids.retainAll(related)
+                    }
+                } else {
+                    ids.addAll(related)
+                }
+            } else {
+                ids = NO_RESULT
+            }
+        } else if (query.primary) {
+            def related = findRelatedIds(query.primary, true)
             if (related) {
                 if(ids) {
                     if (ids != NO_RESULT) {
