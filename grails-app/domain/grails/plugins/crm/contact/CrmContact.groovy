@@ -35,6 +35,8 @@ class CrmContact implements CrmContactInformation {
 
     private static final int DUNS_NUMBER_LENGTH = 9
 
+    private static final Pattern SSN_TRIM_PATTERN =  Pattern.compile(/\D/) // 555555-5555 -> 5555555555
+
     String firstName // Given name(s) for person, null for company.
     String lastName  // Family name for person, null for company.
     String name      // firstName + lastName (set in beforeValidate) for individuals and complete name for company
@@ -140,7 +142,12 @@ class CrmContact implements CrmContactInformation {
         }
         namePhonetic = name ? CrmContact.doubleMetaphoneEncode(name) : null
 
-        if (duns && domainClass.grailsApplication.config.crm.contact.duns.strict) {
+        def config = domainClass.grailsApplication.config
+        if(ssn && config.crm.contact.ssn.numeric) {
+            ssn = ssn.replaceAll(CrmContact.SSN_TRIM_PATTERN, '') // 555555-55?? -> 55555555??
+        }
+
+        if (duns && config.crm.contact.duns.strict) {
             duns = duns.replaceAll(/\D/, '').trim() ?: null
         }
     }

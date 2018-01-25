@@ -36,6 +36,8 @@ class CrmContactService {
 
     public static final String DEFAULT_ADDRESS_TYPE = 'postal'
 
+    private static final Pattern SSN_TRIM_QUERY_PATTERN =  Pattern.compile(/[^0-9\?\*=]/)
+
     def grailsApplication
     def crmSecurityService
     def sequenceGeneratorService
@@ -364,7 +366,11 @@ class CrmContactService {
             eq('duns', query.duns) // Exact match, no wildcard.
         }
         if (query.ssn) {
-            ilike('ssn', SearchUtils.wildcard(query.ssn))
+            String ssn = query.ssn.toString()
+            if(grailsApplication.config.crm.contact.ssn.numeric) {
+                ssn = ssn.replaceAll(SSN_TRIM_QUERY_PATTERN, '') // 555555-55?? -> 55555555??
+            }
+            ilike('ssn', SearchUtils.wildcard(ssn))
         }
         if (query.username) {
             ilike('username', SearchUtils.wildcard(query.username))
@@ -574,7 +580,7 @@ class CrmContactService {
         } else {
             type = getRelationType(typeOrParam.toString())
             if (!type) {
-                throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeParam]")
+                throw new IllegalArgumentException("CrmContactRelationType not found with param [$typeOrParam]")
             }
         }
         def relation = getRelation(a, b, type)
