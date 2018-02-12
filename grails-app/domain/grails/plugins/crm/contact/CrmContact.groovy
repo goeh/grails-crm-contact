@@ -270,12 +270,12 @@ class CrmContact implements CrmContactInformation {
 
     @Override
     transient String getCompanyName() {
-        primaryContact?.name
+        this.isCompany() ? this.name : (primaryContact?.name)
     }
 
     @Override
     transient Long getCompanyId() {
-        primaryContact?.id
+        this.isCompany() ? this.id : (primaryContact?.id)
     }
 
     @Override
