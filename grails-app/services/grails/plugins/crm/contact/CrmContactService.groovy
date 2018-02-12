@@ -440,6 +440,36 @@ class CrmContactService {
             }
         }
 
+        if (query.birthYear) {
+            if (query.birthYear[0] == '<') {
+                lt('birthYear', Integer.valueOf(query.birthYear.substring(1)))
+            } else if (query.birthYear[0] == '>') {
+                gt('birthYear', Integer.valueOf(query.birthYear.substring(1)))
+            } else {
+                eq('birthYear', Integer.valueOf(query.birthYear))
+            }
+        }
+
+        if (query.birthMonth) {
+            if (query.birthMonth[0] == '<') {
+                lt('birthMonth', Integer.valueOf(query.birthMonth.substring(1)))
+            } else if (query.birthMonth[0] == '>') {
+                gt('birthMonth', Integer.valueOf(query.birthMonth.substring(1)))
+            } else {
+                eq('birthMonth', Integer.valueOf(query.birthMonth))
+            }
+        }
+
+        if (query.birthDay) {
+            if (query.birthDay[0] == '<') {
+                lt('birthDay', Integer.valueOf(query.birthDay.substring(1)))
+            } else if (query.birthDay[0] == '>') {
+                gt('birthDay', Integer.valueOf(query.birthDay.substring(1)))
+            } else {
+                eq('birthDay', Integer.valueOf(query.birthDay))
+            }
+        }
+
         if (query.dateCreated) {
             if (query.dateCreated[0] == '<') {
                 lt('dateCreated', DateUtils.getDateSpan(DateUtils.parseDate(query.dateCreated.substring(1)))[0])
