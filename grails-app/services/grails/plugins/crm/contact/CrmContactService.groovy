@@ -15,19 +15,12 @@
  */
 package grails.plugins.crm.contact
 
-import grails.plugins.crm.core.CrmAddressInformation
-import grails.plugins.crm.core.CrmContactInformation
-import grails.plugins.crm.core.CrmEmbeddedAddress
-import grails.plugins.crm.core.CrmEmbeddedContact
-import grails.plugins.crm.core.DateUtils
-import grails.plugins.crm.core.TenantUtils
-import grails.plugins.crm.core.PagedResultList
-import grails.plugins.crm.core.Pair
+import grails.events.Listener
+import grails.plugins.crm.core.*
+import grails.plugins.selection.Selectable
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.grails.web.metaclass.BindDynamicMethod
-import grails.plugins.crm.core.SearchUtils
-import grails.plugins.selection.Selectable
-import grails.events.Listener
+
 import java.util.regex.Pattern
 
 class CrmContactService {
@@ -36,7 +29,7 @@ class CrmContactService {
 
     public static final String DEFAULT_ADDRESS_TYPE = 'postal'
 
-    private static final Pattern SSN_TRIM_QUERY_PATTERN =  Pattern.compile(/[^0-9\?\*=]/)
+    private static final Pattern SSN_TRIM_QUERY_PATTERN = Pattern.compile(/[^0-9\?\*=]/)
 
     def grailsApplication
     def crmSecurityService
@@ -220,7 +213,7 @@ class CrmContactService {
                     property('id')
                 }
             }
-            if(primary != null) {
+            if (primary != null) {
                 eq('primary', primary)
             }
             if (related instanceof Number) {
@@ -243,7 +236,7 @@ class CrmContactService {
                     property('id')
                 }
             }
-            if(primary != null) {
+            if (primary != null) {
                 eq('primary', primary)
             }
             if (related instanceof Number) {
@@ -280,7 +273,7 @@ class CrmContactService {
         if (query.related) {
             def related = findRelatedIds(query.related, null)
             if (related) {
-                if(ids) {
+                if (ids) {
                     if (ids != NO_RESULT) {
                         ids.retainAll(related)
                     }
@@ -293,7 +286,7 @@ class CrmContactService {
         } else if (query.primary) {
             def related = findRelatedIds(query.primary, true)
             if (related) {
-                if(ids) {
+                if (ids) {
                     if (ids != NO_RESULT) {
                         ids.retainAll(related)
                     }
@@ -305,7 +298,7 @@ class CrmContactService {
             }
         }
 
-        if(query.role) {
+        if (query.role) {
             def rels = CrmContactRelation.createCriteria().list {
                 projections {
                     a {
@@ -322,13 +315,13 @@ class CrmContactService {
                     }
                 }
             }
-            if(rels) {
+            if (rels) {
                 Set<Long> tmp = [] as Set
-                for(tuple in rels) {
+                for (tuple in rels) {
                     tmp.add(tuple[0])
                     tmp.add(tuple[1])
                 }
-                if(ids) {
+                if (ids) {
                     if (ids != NO_RESULT) {
                         ids.retainAll(tmp)
                     }
@@ -367,7 +360,7 @@ class CrmContactService {
         }
         if (query.ssn) {
             String ssn = query.ssn.toString()
-            if(grailsApplication.config.crm.contact.ssn.numeric) {
+            if (grailsApplication.config.crm.contact.ssn.numeric) {
                 ssn = ssn.replaceAll(SSN_TRIM_QUERY_PATTERN, '') // 555555-55?? -> 55555555??
             }
             ilike('ssn', SearchUtils.wildcard(ssn))
@@ -735,10 +728,18 @@ class CrmContactService {
     CrmContactCategory addCategory(CrmContact crmContact, String categoryParam, String categoryName = null) {
         def categoryType = getCategoryType(categoryParam)
         if (!categoryType) {
-            if (categoryName) {
-                categoryType = createCategoryType(name: categoryName, param: categoryParam, true)
-            } else {
-                throw new IllegalArgumentException("CrmContactCategoryType not found with param [$categoryParam]")
+            categoryType = CrmContactCategoryType.createCriteria().get() {
+                eq('tenantId', TenantUtils.tenant)
+                ilike('name', categoryName ?: categoryParam)
+                maxResults 1
+                order 'id', 'asc'
+            }
+            if (!categoryType) {
+                if (categoryName) {
+                    categoryType = createCategoryType(name: categoryName, param: categoryParam, true)
+                } else {
+                    throw new IllegalArgumentException("CrmContactCategoryType not found with param [$categoryParam]")
+                }
             }
         }
         def category = CrmContactCategory.createCriteria().get() {
