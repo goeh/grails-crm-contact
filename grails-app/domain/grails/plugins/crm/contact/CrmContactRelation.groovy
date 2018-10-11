@@ -28,7 +28,7 @@ class CrmContactRelation {
 
     static constraints = {
         type(unique: ['a', 'b'])
-        description(maxSize: 2000, nullable: true, widget: 'textarea')
+        description(maxSize: 4000, nullable: true, widget: 'textarea')
     }
 
     static mapping = {

@@ -81,7 +81,7 @@ class CrmContact implements CrmContactInformation {
             }
             return null
         })
-        description(maxSize: 2000, nullable: true, widget: 'textarea')
+        description(maxSize: 4000, nullable: true, widget: 'textarea')
         picture(maxSize: 255, nullable: true)
         gender(maxSize: 1, inList: ['F', 'M'], nullable: true)
         birthYear(min: 1500, max: 2099, nullable: true)
