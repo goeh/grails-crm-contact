@@ -389,10 +389,18 @@ class CrmContactService {
             ilike('title', SearchUtils.wildcard(query.title))
         }
         if (query.telephone) {
-            ilike('telephone', SearchUtils.wildcard(query.telephone))
+            if(query.telephone == '!') {
+                isNull('telephone')
+            } else {
+                ilike('telephone', SearchUtils.wildcard(query.telephone))
+            }
         }
         if (query.email) {
-            ilike('email', SearchUtils.wildcard(query.email))
+            if(query.email == '!') {
+                isNull('email')
+            } else {
+                ilike('email', SearchUtils.wildcard(query.email))
+            }
         }
         if (query.url) {
             ilike('url', SearchUtils.wildcard(query.url))
