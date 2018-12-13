@@ -129,8 +129,11 @@ class CrmContactService {
         CrmContact.findByNumber2AndTenantId(number, TenantUtils.tenant, [cache: true])
     }
 
-    CrmContact findBySsn(String number) {
-        CrmContact.findBySsnAndTenantId(number, TenantUtils.tenant, [cache: true])
+    CrmContact findBySsn(String ssn) {
+        if (grailsApplication.config.crm.contact.ssn.numeric) {
+            ssn = ssn.replaceAll(SSN_TRIM_QUERY_PATTERN, '') // 555555-55?? -> 55555555??
+        }
+        CrmContact.findBySsnAndTenantId(ssn, TenantUtils.tenant, [cache: true])
     }
 
     CrmContact findByDuns(String number) {
