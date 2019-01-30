@@ -273,6 +273,18 @@ class CrmContactService {
             }
         }
 
+        def eventIds = event(for: 'crmContact', topic: 'query',
+                data: [tenant: TenantUtils.tenant, query: query]).waitFor(30000)?.values?.flatten()
+        if(eventIds) {
+            if (ids) {
+                if (ids != NO_RESULT) {
+                    ids.retainAll(related)
+                }
+            } else {
+                ids.addAll(eventIds)
+            }
+        }
+
         if (query.related) {
             def related = findRelatedIds(query.related, null)
             if (related) {
@@ -1154,7 +1166,6 @@ class CrmContactService {
                         a = new CrmContactAddress(address)
                         crmContact.addToAddresses(a)
                     }
-                    println "Updatring address $address"
                     a.properties = address
                 }
                 crmContact.parent = company
