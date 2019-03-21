@@ -348,6 +348,22 @@ class CrmContactService {
             }
         }
 
+        if(query.activity) {
+            def crmTaskService = grailsApplication.mainContext.getBean('crmTaskService')
+            def tmp = crmTaskService.findContactIds([type: query.activity])
+            if(tmp) {
+                if (ids) {
+                    if (ids != NO_RESULT) {
+                        ids.retainAll(tmp)
+                    }
+                } else {
+                    ids.addAll(tmp)
+                }
+            } else {
+                ids = NO_RESULT
+            }
+        }
+
         projections {
             if (count) {
                 countDistinct "id"
