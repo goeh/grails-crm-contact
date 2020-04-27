@@ -178,6 +178,7 @@ println result
 
 == Changes
 
+2.4.5:: Add support for IS NULL queries on email and telephone. Add query support for birthYear/Month/Day
 2.4.4:: Depends on crm-core version 2.4.4 that include increased column lengths for some address properties
 2.4.3:: Increase length of name field from 80 to 128 characters -> *db migration!*
 2.4.2:: Added `CrmContactService#getRelatedContacts()`. Improved sequence number configuration.
